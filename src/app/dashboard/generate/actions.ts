@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessSite } from "@/lib/access";
@@ -56,33 +57,46 @@ export async function generateDraft(
     return { error: e instanceof Error ? e.message : "Falha ao gerar conteúdo." };
   }
 
-  let imageUrl: string | null = null;
-  if (withImage && (result.imageUrl || result.imageB64)) {
-    imageUrl = await persistGeneratedImage({
-      url: result.imageUrl,
-      b64: result.imageB64,
+  // Persistência (imagem + post): captura falhas e devolve mensagem amigável,
+  // em vez de estourar 500. O redirect fica FORA do try (ele lança um controle
+  // de fluxo NEXT_REDIRECT que não deve ser capturado aqui).
+  let postId: string;
+  try {
+    let imageUrl: string | null = null;
+    if (withImage && (result.imageUrl || result.imageB64)) {
+      imageUrl = await persistGeneratedImage({
+        url: result.imageUrl,
+        b64: result.imageB64,
+      });
+    }
+
+    const slug = await uniqueSlug(siteId, slugify(result.title) || "rascunho");
+
+    const post = await db.post.create({
+      data: {
+        siteId,
+        title: result.title,
+        slug,
+        excerpt: result.excerpt || result.metaDescription || null,
+        content: result.content,
+        imageUrl,
+        seoScore: result.seoScore,
+        sourceUrl: sourceUrl || null,
+        createdByAi: true,
+        status: "DRAFT",
+      },
     });
+    postId = post.id;
+  } catch (e) {
+    // P2002 = violação de unique (slug colidiu numa corrida concorrente).
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { error: "Já existe um post com esse slug neste site. Tente gerar novamente." };
+    }
+    return { error: e instanceof Error ? e.message : "Falha ao salvar o rascunho." };
   }
 
-  const slug = await uniqueSlug(siteId, slugify(result.title) || "rascunho");
-
-  const post = await db.post.create({
-    data: {
-      siteId,
-      title: result.title,
-      slug,
-      excerpt: result.excerpt || result.metaDescription || null,
-      content: result.content,
-      imageUrl,
-      seoScore: result.seoScore,
-      sourceUrl: sourceUrl || null,
-      createdByAi: true,
-      status: "DRAFT",
-    },
-  });
-
   revalidatePath(`/dashboard/sites/${siteId}`);
-  redirect(`/dashboard/sites/${siteId}/posts/${post.id}`);
+  redirect(`/dashboard/sites/${siteId}/posts/${postId}`);
 }
 
 /** Garante slug único dentro do site (append -2, -3, ...). */

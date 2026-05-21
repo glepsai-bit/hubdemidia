@@ -34,7 +34,8 @@
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
 - [Front-end/UI] **Registrado no time, sem lock ativo.** Aguardando o QA liberar `sites/`,`posts/`,`publish/` e o Implementador liberar `dashboard/layout.tsx` para iniciar o design system + refatoração visual. Vou tocar só camada presentacional (`src/components/**`, `*.tsx` de render, `globals.css`); não mexo em `actions.ts`/`src/lib/**`.
-- [QA] **LOCK LIBERADO ~02:10.** Revisão da Fase 1 concluída (aprovada, 0 bugs). `sites/`, `posts/`, `publish/`, `proxy.ts`, `validation.ts`, `access.ts` **liberados** — Front-end pode iniciar o visual dessas telas.
+- [QA] Fase 1 ✅ e Fase 2 ✅ aprovadas. **LOCK LIBERADO ~02:45.** Hardening dos itens 4/5 da Fase 2 aplicado
+  em `generate/actions.ts` (try/catch cobre imagem+create; P2002 → mensagem amigável; redirect fora do try). Tudo liberado.
 - [Implementador] **Fase 2 (IA nativa BYOK) — LOCK LIBERADO ~02:15** (commit `321fd9b`).
   `dashboard/settings/`, `dashboard/generate/`, `src/lib/storage.ts`, `AiKeyForm.tsx`, `GenerateForm.tsx`
   e `dashboard/layout.tsx` **liberados**. **Front-end:** o `layout.tsx` que você aguardava está livre;
@@ -48,20 +49,7 @@
 
 <!-- Implementador adiciona aqui o que terminou e precisa ser revisado pelo QA -->
 - ✅ **[Fase 1 — commit `927b9ef`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
-- [Fase 2 — commit `321fd9b`] Revisar IA nativa BYOK. Pontos de atenção:
-  - **Cripto BYOK** (`src/lib/crypto.ts` consumido por `settings/actions.ts`): chave nunca em texto puro;
-    smoke test de round-trip passou. Conferir que `ENCRYPTION_KEY` ausente dá erro tratado (não 500 cru).
-  - **`generate/actions.ts`**: `canAccessSite` (RBAC) antes de gerar; `uniqueSlug` é check-then-create
-    (mesmo P2002 não-atômico apontado na Fase 1 #1 — mesma decisão se aplica).
-  - **`storage.ts`**: escreve em `/public/uploads` (ok em VPS; em FS read-only de prod falharia — trocar por MinIO).
-  - Erro do pipeline (chave ausente / falha do provedor) é capturado e devolvido como mensagem amigável no form.
-  - Não consegui testar a chamada real às APIs (sem chave BYOK) — validei wiring, cripto e caminho de erro.
-- [Fase 2 — fechamento — commit `cfa70ce`] Revisar pesquisa real de palavras-chave (`src/lib/keywords/**`). Atenção:
-  - **Fonte gratuita** Google Suggest (sem volume absoluto, só termos reais); chamada com timeout 5s +
-    `try/catch` → degrada para fallback de extração offline. Smoke test (chamada real PT-BR + fallback) passou.
-  - Pipeline pesquisa keywords a partir do **título** (gerado pelo Leitor) + sementes manuais, antes do SEO.
-  - Robustez de rede: confirmar comportamento se o endpoint do Google bloquear/retornar 429 (deve cair no fallback).
-  - Possível evolução (não-bloqueante): provider BYOK de volume real (DataForSEO/SEMrush) — exigiria modelo de chave.
+- ✅ **[Fase 2 — commits `321fd9b` + `cfa70ce`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 
 ## Erros encontrados / correções (QA)
 
@@ -84,6 +72,23 @@
   2. Markdown renderiza como texto pré-formatado (`whitespace-pre-wrap`) — escopo, não bug. Anotar p/ depois.
   3. Guard de `/dashboard` no proxy roda também em host de tenant (mostra login do painel no domínio público).
      Cosmético; tratar quando provisionar domínios reais.
+
+### Fase 2 (commits `321fd9b` + `cfa70ce`) — revisado em 21/05 ~02:35. **VEREDITO: aprovado, 0 bugs bloqueantes.**
+- ✅ `tsc` + `eslint` + `next build` limpos (13 rotas).
+- ✅ **Cripto BYOK** (`settings/actions.ts`): valida provider + tamanho mínimo, `try/catch` em `encrypt`
+  (ENCRYPTION_KEY ausente → erro amigável), upsert sem texto puro. Round-trip já validado na fundação.
+- ✅ **RBAC generate** (`generate/actions.ts`): `canAccessSite` antes de gerar; pipeline em `try/catch`.
+- ✅ **Keywords** (`src/lib/keywords/**`): smoke test runtime — chamada **REAL** ao Google Suggest pt-BR
+  retornou termos reais; fallback offline (extração + stopwords) funciona; timeout 5s + abort + degradação.
+- ✅ **Camada AI** (`src/lib/ai/**`): model IDs válidos (`claude-sonnet-4-6`, `gpt-4o`, `gpt-image-1`, `grok-4`);
+  parsing de JSON tolerante; chave ausente lança erro claro (testado) → capturado no form, sem 500 cru.
+- ✅ **Auth gating**: `/dashboard/settings` e `/dashboard/generate` → 307 `/login`.
+- **Recomendações:**
+  4. ✅ **CORRIGIDO pelo QA:** `generate/actions.ts` — `persistGeneratedImage` + `db.post.create` agora dentro de
+     `try/catch` (redirect fora). Falha → mensagem amigável, sem 500 cru.
+  5. ✅ **CORRIGIDO pelo QA:** colisão de slug (P2002) tratada com mensagem amigável no mesmo `try/catch`.
+  6. ⚠️ (não-bloqueante) `storage.ts` grava em `/public/uploads` — ok no VPS; em FS read-only de prod falharia. Trocar por MinIO ao escalar (já no Roadmap).
+  7. ⚠️ (não-bloqueante, **Front-end**) Provider de imagem é sempre OpenAI: gerar com texto=Claude + imagem exige **também** chave OpenAI; senão o passo de imagem falha (com erro amigável). Documentar na tela `GenerateForm.tsx`.
 
 ## Fila (próximas tarefas, sem dono ainda)
 
