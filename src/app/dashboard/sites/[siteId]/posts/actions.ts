@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { postSchema } from "@/lib/validation";
+import { notifyN8n } from "@/lib/n8n";
 import { assertSiteAccess } from "../../actions";
 import type { ActionState } from "../../actions";
 
@@ -84,6 +85,7 @@ export async function publishPost(siteId: string, postId: string): Promise<void>
     where: { id: postId },
     data: { status: "PUBLISHED", publishedAt: new Date() },
   });
+  await notifyN8n("post.published", { siteId, postId });
   revalidatePath(`/dashboard/sites/${siteId}`);
 }
 

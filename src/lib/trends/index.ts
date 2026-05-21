@@ -1,6 +1,7 @@
 // Coleta de tendências: lê as fontes ativas, pontua o "fora da curva" e grava pautas novas (sem duplicar).
 import type { Source, SourceType } from "@prisma/client";
 import { db } from "@/lib/db";
+import { notifyN8n } from "@/lib/n8n";
 import { fetchFeed } from "./rss";
 import type { CollectSummary, FeedItem, TrendCandidate } from "./types";
 
@@ -91,6 +92,15 @@ export async function collectActiveSources(opts: { siteId?: string | null } = {}
       })),
     });
     summary.inserted = res.count;
+  }
+
+  // Notifica o n8n quando há pautas novas (para encadear fluxos externos).
+  if (summary.inserted > 0) {
+    await notifyN8n("trends.collected", {
+      inserted: summary.inserted,
+      fetched: summary.fetched,
+      sources: summary.sources,
+    });
   }
 
   return summary;

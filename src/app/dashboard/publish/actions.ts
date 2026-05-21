@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { postSchema } from "@/lib/validation";
+import { notifyN8n } from "@/lib/n8n";
 
 export type PublishState = { error?: string; ok?: string } | undefined;
 
@@ -53,6 +54,7 @@ export async function publishToAll(
     skipDuplicates: true,
   });
 
+  await notifyN8n("posts.published_all", { count: result.count, sites: sites.length, slug: data.slug });
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/sites");
   return { ok: `Publicado em ${result.count} de ${sites.length} site(s).` };
