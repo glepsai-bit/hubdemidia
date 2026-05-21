@@ -36,22 +36,24 @@ export default async function TenantPost({ params }: { params: Params }) {
   await recordView({ siteId: site.id, postId: post.id, path: `/${post.slug}` }); // analytics
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href="/" className="text-sm text-gray-500 hover:underline">
+    <main className="mx-auto max-w-2xl px-6 py-16">
+      <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-900">
         ← {site.name}
       </Link>
-      <article className="mt-4">
-        <h1 className="text-3xl font-bold">{post.title}</h1>
+      <article className="mt-6">
+        <h1 className="text-4xl font-bold leading-tight tracking-tight text-neutral-900">
+          {post.title}
+        </h1>
         {post.publishedAt && (
-          <time className="mt-1 block text-sm text-gray-400">
+          <time className="mt-3 block text-sm text-neutral-400">
             {post.publishedAt.toLocaleDateString("pt-BR")}
           </time>
         )}
         {post.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={post.imageUrl} alt={post.title} className="mt-6 w-full rounded-lg" />
+          <img src={post.imageUrl} alt={post.title} className="mt-8 w-full rounded-xl" />
         )}
-        <div className="mt-6 whitespace-pre-wrap leading-relaxed text-gray-800">
+        <div className="mt-8 whitespace-pre-wrap text-lg leading-relaxed text-neutral-800">
           {post.content}
         </div>
       </article>

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { SiteForm } from "@/components/SiteForm";
 import { PostForm } from "@/components/PostForm";
+import { Badge, Button, Card, EmptyState, PageHeader, TextLink } from "@/components/ui";
 import { assertSiteAccess, deleteSite, updateSite } from "../actions";
 import { createPost, deletePost, publishPost, unpublishPost } from "./posts/actions";
 
@@ -23,75 +24,83 @@ export default async function SiteDetailPage({
   if (!site) notFound();
 
   return (
-    <div className="space-y-10">
-      <div>
-        <Link href="/dashboard/sites" className="text-sm text-gray-500 hover:underline">
+    <div className="space-y-8">
+      <div className="space-y-3">
+        <TextLink href="/dashboard/sites" className="text-sm text-neutral-500 no-underline hover:text-neutral-900">
           ← Sites
-        </Link>
-        <h1 className="mt-1 text-2xl font-bold">{site.name}</h1>
-        <p className="text-sm text-gray-500">
-          {site.domain ?? `${site.slug}.${process.env.ROOT_DOMAIN}`} · {site.status}
-        </p>
+        </TextLink>
+        <PageHeader
+          title={site.name}
+          description={`${site.domain ?? `${site.slug}.${process.env.ROOT_DOMAIN}`} · ${site.status}`}
+        />
       </div>
 
       {/* Posts */}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold">Posts</h2>
+      <section className="space-y-4">
+        <h2 className="text-base font-semibold text-neutral-900">Posts</h2>
         {site.posts.length === 0 ? (
-          <p className="text-gray-500">Nenhum post ainda.</p>
+          <EmptyState>Nenhum post ainda. Crie o primeiro abaixo.</EmptyState>
         ) : (
-          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+          <Card className="divide-y divide-neutral-100">
             {site.posts.map((post) => (
-              <li key={post.id} className="flex items-center justify-between gap-4 p-4">
+              <div key={post.id} className="flex items-center justify-between gap-4 p-4">
                 <div className="min-w-0">
                   <Link
                     href={`/dashboard/sites/${site.id}/posts/${post.id}`}
-                    className="font-medium hover:underline"
+                    className="font-medium text-neutral-900 hover:text-brand"
                   >
                     {post.title}
                   </Link>
-                  <div className="text-sm text-gray-500">
-                    {post.status}
-                    {post.seoScore != null && ` · SEO ${post.seoScore}`}
-                    {post.createdByAi && " · IA"}
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-neutral-500">
+                    <Badge tone={post.status === "PUBLISHED" ? "success" : "neutral"}>
+                      {post.status === "PUBLISHED" ? "Publicado" : "Rascunho"}
+                    </Badge>
+                    {post.seoScore != null && <Badge tone="info">SEO {post.seoScore}</Badge>}
+                    {post.createdByAi && <Badge tone="info">IA</Badge>}
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-3 text-sm">
+                <div className="flex shrink-0 items-center gap-1">
                   {post.status === "PUBLISHED" ? (
                     <form action={unpublishPost.bind(null, site.id, post.id)}>
-                      <button className="text-amber-600 hover:underline">Despublicar</button>
+                      <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700">
+                        Despublicar
+                      </Button>
                     </form>
                   ) : (
                     <form action={publishPost.bind(null, site.id, post.id)}>
-                      <button className="text-green-600 hover:underline">Publicar</button>
+                      <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700">
+                        Publicar
+                      </Button>
                     </form>
                   )}
                   <Link
                     href={`/dashboard/sites/${site.id}/posts/${post.id}`}
-                    className="text-blue-600 hover:underline"
+                    className="rounded-md px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                   >
                     Editar
                   </Link>
                   <form action={deletePost.bind(null, site.id, post.id)}>
-                    <button className="text-red-600 hover:underline">Excluir</button>
+                    <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                      Excluir
+                    </Button>
                   </form>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </Card>
         )}
       </section>
 
       {/* Novo post */}
-      <section className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold">Novo post</h2>
+      <Card className="p-6">
+        <h2 className="mb-4 text-base font-semibold text-neutral-900">Novo post</h2>
         <PostForm action={createPost.bind(null, site.id)} submitLabel="Criar post (rascunho)" />
-      </section>
+      </Card>
 
       {/* Configurações do site (admin) */}
       {isAdmin && (
-        <section className="rounded-lg border border-gray-200 bg-white p-6">
-          <h2 className="mb-4 text-lg font-semibold">Configurações do site</h2>
+        <Card className="p-6">
+          <h2 className="mb-4 text-base font-semibold text-neutral-900">Configurações do site</h2>
           <SiteForm
             action={updateSite.bind(null, site.id)}
             submitLabel="Salvar alterações"
@@ -103,10 +112,12 @@ export default async function SiteDetailPage({
               status: site.status,
             }}
           />
-          <form action={deleteSite.bind(null, site.id)} className="mt-6 border-t border-gray-200 pt-4">
-            <button className="text-sm text-red-600 hover:underline">Excluir site</button>
+          <form action={deleteSite.bind(null, site.id)} className="mt-6 border-t border-neutral-200 pt-4">
+            <Button variant="danger" size="sm">
+              Excluir site
+            </Button>
           </form>
-        </section>
+        </Card>
       )}
     </div>
   );

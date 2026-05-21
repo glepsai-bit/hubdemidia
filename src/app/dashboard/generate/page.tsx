@@ -1,9 +1,9 @@
 // Geração de conteúdo por IA: roda o pipeline (Leitor → SEO → Imagem) e cria um rascunho de post.
-import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { accessibleSiteIds } from "@/lib/access";
 import { GenerateForm } from "@/components/GenerateForm";
+import { Card, EmptyState, PageHeader, TextLink } from "@/components/ui";
 
 export default async function GeneratePage() {
   const session = await auth();
@@ -23,35 +23,29 @@ export default async function GeneratePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Gerar conteúdo com IA</h1>
-        <p className="text-sm text-gray-500">
-          O pipeline reescreve a notícia, otimiza o SEO e (opcional) gera a imagem, salvando como rascunho.
-        </p>
-      </div>
+      <PageHeader
+        title="Gerar conteúdo com IA"
+        description="O pipeline reescreve a notícia, otimiza o SEO e (opcional) gera a imagem, salvando como rascunho."
+      />
 
       {keyCount === 0 && (
-        <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           Você ainda não configurou nenhuma chave de IA.{" "}
-          <Link href="/dashboard/settings" className="font-medium underline">
+          <TextLink href="/dashboard/settings" className="text-amber-900">
             Configurar chaves (BYOK)
-          </Link>
+          </TextLink>
           .
-        </p>
+        </div>
       )}
 
       {sites.length === 0 ? (
-        <p className="text-gray-500">
-          Você não tem sites disponíveis.{" "}
-          <Link href="/dashboard/sites" className="text-blue-600 hover:underline">
-            Ver sites
-          </Link>
-          .
-        </p>
+        <EmptyState>
+          Você não tem sites disponíveis. <TextLink href="/dashboard/sites">Ver sites</TextLink>.
+        </EmptyState>
       ) : (
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <Card className="p-6">
           <GenerateForm sites={sites} />
-        </div>
+        </Card>
       )}
     </div>
   );

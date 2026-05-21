@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createSource, type SourceState } from "@/app/dashboard/sources/actions";
+import { Button, Field, FormError, FormSuccess, Input, Select } from "@/components/ui";
 
 interface SiteOption {
   id: string;
@@ -14,56 +15,46 @@ export function SourceForm({ sites, isAdmin }: { sites: SiteOption[]; isAdmin: b
   return (
     <form action={formAction} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">Tipo</span>
-          <select name="type" className="w-full rounded-lg border border-gray-300 px-3 py-2" defaultValue="RSS">
+        <Field label="Tipo">
+          <Select name="type" defaultValue="RSS">
             <option value="RSS">RSS / Atom</option>
             <option value="GOOGLE_TRENDS">Google Trends (RSS)</option>
             <option value="WEBSITE">Site (feed)</option>
-          </select>
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">Escopo</span>
-          <select name="siteId" className="w-full rounded-lg border border-gray-300 px-3 py-2" defaultValue="">
+          </Select>
+        </Field>
+        <Field label="Escopo">
+          <Select name="siteId" defaultValue="">
             {isAdmin && <option value="">Global (todos os sites)</option>}
             {sites.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
       </div>
 
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-gray-700">URL do feed</span>
-        <input
+      <Field
+        label="URL do feed"
+        hint="Para Google Trends use o RSS de tendências do dia, ex.: https://trends.google.com/trending/rss?geo=BR"
+      >
+        <Input
           name="url"
           required
           placeholder="https://site.com/rss  ·  https://trends.google.com/trending/rss?geo=BR"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2"
         />
-        <span className="mt-1 block text-xs text-gray-500">
-          Para Google Trends use o RSS de tendências do dia, ex.:
-          https://trends.google.com/trending/rss?geo=BR
-        </span>
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-gray-700">Rótulo (opcional)</span>
-        <input name="label" className="w-full rounded-lg border border-gray-300 px-3 py-2" />
-      </label>
+      <Field label="Rótulo (opcional)">
+        <Input name="label" />
+      </Field>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
-      {state?.ok && <p className="text-sm text-green-600">{state.ok}</p>}
+      <FormError>{state?.error}</FormError>
+      <FormSuccess>{state?.ok}</FormSuccess>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-black px-4 py-2 font-medium text-white disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Adicionando..." : "Adicionar fonte"}
-      </button>
+      </Button>
     </form>
   );
 }

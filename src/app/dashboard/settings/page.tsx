@@ -3,6 +3,7 @@ import type { AiProvider } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AiKeyForm } from "@/components/AiKeyForm";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import { deleteApiKey } from "./actions";
 
 const LABELS: Record<AiProvider, string> = {
@@ -23,41 +24,48 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Configurações de IA</h1>
-        <p className="text-sm text-gray-500">
-          Use suas próprias chaves (BYOK). Elas são criptografadas e nunca exibidas de volta.
-        </p>
-      </div>
+      <PageHeader
+        title="Configurações de IA"
+        description="Use suas próprias chaves (BYOK). Elas são criptografadas e nunca exibidas de volta."
+      />
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Provedores configurados</h2>
-        <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-neutral-900">Provedores configurados</h2>
+        <Card className="divide-y divide-neutral-100">
           {(["CLAUDE", "OPENAI", "GROK"] as AiProvider[]).map((p) => {
             const when = configured.get(p);
             return (
-              <li key={p} className="flex items-center justify-between p-4">
+              <div key={p} className="flex items-center justify-between gap-4 p-4">
                 <div>
-                  <div className="font-medium">{LABELS[p]}</div>
-                  <div className="text-sm text-gray-500">
-                    {when ? `Configurado · atualizado ${when.toLocaleDateString("pt-BR")}` : "Não configurado"}
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-neutral-900">{LABELS[p]}</span>
+                    <Badge tone={when ? "success" : "neutral"}>
+                      {when ? "Configurado" : "Não configurado"}
+                    </Badge>
                   </div>
+                  {when && (
+                    <div className="mt-0.5 text-sm text-neutral-500">
+                      Atualizado em {when.toLocaleDateString("pt-BR")}
+                    </div>
+                  )}
                 </div>
                 {when && (
                   <form action={deleteApiKey.bind(null, p)}>
-                    <button className="text-sm text-red-600 hover:underline">Remover</button>
+                    <button className="rounded-md px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
+                      Remover
+                    </button>
                   </form>
                 )}
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </Card>
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold">Adicionar / substituir chave</h2>
+      <Card className="p-6">
+        <h2 className="mb-4 text-base font-semibold text-neutral-900">Adicionar / substituir chave</h2>
         <AiKeyForm />
-      </section>
+      </Card>
     </div>
   );
 }

@@ -1,9 +1,10 @@
-// Analytics por site: acessos totais, no período, por dia e posts mais vistos. Tela básica.
+// Analytics por site: acessos totais, no período, por dia e posts mais vistos.
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { accessibleSiteIds } from "@/lib/access";
 import { getSiteStats } from "@/lib/analytics";
+import { Card, EmptyState, PageHeader, Stat, TextLink, cn } from "@/components/ui";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -23,15 +24,11 @@ export default async function AnalyticsPage({
 
   if (sites.length === 0) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Analytics</h1>
-        <p className="text-gray-500">
-          Nenhum site disponível.{" "}
-          <Link href="/dashboard/sites" className="text-blue-600 hover:underline">
-            Ver sites
-          </Link>
-          .
-        </p>
+      <div className="space-y-6">
+        <PageHeader title="Analytics" />
+        <EmptyState>
+          Nenhum site disponível. <TextLink href="/dashboard/sites">Ver sites</TextLink>.
+        </EmptyState>
       </div>
     );
   }
@@ -43,24 +40,24 @@ export default async function AnalyticsPage({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Analytics</h1>
-        <nav className="flex flex-wrap gap-2">
+      <PageHeader title="Analytics" description="Acessos first-party às páginas públicas, por site.">
+        <nav className="flex flex-wrap gap-1.5">
           {sites.map((s) => (
             <Link
               key={s.id}
               href={`/dashboard/analytics?siteId=${s.id}`}
-              className={`rounded-lg border px-3 py-1 text-sm ${
+              className={cn(
+                "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
                 s.id === current.id
-                  ? "border-black bg-black text-white"
-                  : "border-gray-300 text-gray-600 hover:border-gray-400"
-              }`}
+                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  : "border-neutral-300 text-neutral-600 hover:border-neutral-400 hover:bg-neutral-50",
+              )}
             >
               {s.name}
             </Link>
           ))}
         </nav>
-      </div>
+      </PageHeader>
 
       <section className="grid gap-4 sm:grid-cols-3">
         <Stat label="Acessos (total)" value={stats.totalAllTime} />
@@ -68,55 +65,48 @@ export default async function AnalyticsPage({
         <Stat label="Posts no top 5" value={stats.topPosts.length} />
       </section>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Acessos por dia (últimos {stats.days} dias)</h2>
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-neutral-900">
+          Acessos por dia (últimos {stats.days} dias)
+        </h2>
         {stats.byDay.length === 0 ? (
-          <p className="text-gray-500">Sem dados ainda. Os acessos às páginas públicas aparecem aqui.</p>
+          <EmptyState>Sem dados ainda. Os acessos às páginas públicas aparecem aqui.</EmptyState>
         ) : (
-          <ul className="space-y-1">
+          <Card className="space-y-1.5 p-5">
             {stats.byDay.map((d) => (
-              <li key={d.day} className="flex items-center gap-3 text-sm">
-                <span className="w-24 shrink-0 text-gray-500">{d.day}</span>
+              <div key={d.day} className="flex items-center gap-3 text-sm">
+                <span className="w-24 shrink-0 text-neutral-500">{d.day}</span>
                 <span
-                  className="inline-block h-4 rounded bg-black"
+                  className="inline-block h-4 rounded bg-brand/80"
                   style={{ width: `${(d.count / maxDay) * 100}%`, minWidth: "4px" }}
                 />
-                <span className="text-gray-700">{d.count}</span>
-              </li>
+                <span className="text-neutral-700">{d.count}</span>
+              </div>
             ))}
-          </ul>
+          </Card>
         )}
       </section>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Posts mais vistos ({stats.days}d)</h2>
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-neutral-900">Posts mais vistos ({stats.days}d)</h2>
         {stats.topPosts.length === 0 ? (
-          <p className="text-gray-500">Sem visualizações de posts ainda.</p>
+          <EmptyState>Sem visualizações de posts ainda.</EmptyState>
         ) : (
-          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+          <Card className="divide-y divide-neutral-100">
             {stats.topPosts.map((p) => (
-              <li key={p.postId} className="flex items-center justify-between p-4">
+              <div key={p.postId} className="flex items-center justify-between gap-4 p-4">
                 <Link
                   href={`/dashboard/sites/${current.id}/posts/${p.postId}`}
-                  className="truncate font-medium hover:underline"
+                  className="truncate font-medium text-neutral-900 hover:text-brand"
                 >
                   {p.title}
                 </Link>
-                <span className="shrink-0 text-sm text-gray-500">{p.count} acessos</span>
-              </li>
+                <span className="shrink-0 text-sm text-neutral-500">{p.count} acessos</span>
+              </div>
             ))}
-          </ul>
+          </Card>
         )}
       </section>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <div className="text-sm text-gray-500">{label}</div>
-      <div className="text-2xl font-bold">{value}</div>
     </div>
   );
 }

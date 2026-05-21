@@ -4,7 +4,14 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { accessibleSiteIds } from "@/lib/access";
 import { SiteForm } from "@/components/SiteForm";
+import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { createSite } from "./actions";
+
+const SITE_STATUS: Record<string, { label: string; tone: "success" | "neutral" | "warning" }> = {
+  LIVE: { label: "No ar", tone: "success" },
+  DRAFT: { label: "Rascunho", tone: "neutral" },
+  PAUSED: { label: "Pausado", tone: "warning" },
+};
 
 export default async function SitesPage() {
   const session = await auth();
@@ -21,42 +28,41 @@ export default async function SitesPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Sites</h1>
+      <PageHeader title="Sites" description="Cada site é servido pelo hub e roteado por domínio." />
 
       {sites.length === 0 ? (
-        <p className="text-gray-500">Nenhum site ainda.</p>
+        <EmptyState>Nenhum site ainda.</EmptyState>
       ) : (
-        <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
-          {sites.map((site) => (
-            <li key={site.id} className="flex items-center justify-between p-4">
-              <div>
-                <Link
-                  href={`/dashboard/sites/${site.id}`}
-                  className="font-medium hover:underline"
-                >
-                  {site.name}
-                </Link>
-                <div className="text-sm text-gray-500">
-                  {site.domain ?? `${site.slug}.${process.env.ROOT_DOMAIN}`} · {site.status} ·{" "}
-                  {site._count.posts} posts
-                </div>
-              </div>
+        <Card className="divide-y divide-neutral-100">
+          {sites.map((site) => {
+            const status = SITE_STATUS[site.status] ?? { label: site.status, tone: "neutral" as const };
+            return (
               <Link
+                key={site.id}
                 href={`/dashboard/sites/${site.id}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-neutral-50"
               >
-                Abrir →
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-medium text-neutral-900">{site.name}</span>
+                    <Badge tone={status.tone}>{status.label}</Badge>
+                  </div>
+                  <div className="mt-0.5 truncate text-sm text-neutral-500">
+                    {site.domain ?? `${site.slug}.${process.env.ROOT_DOMAIN}`} · {site._count.posts} posts
+                  </div>
+                </div>
+                <span className="shrink-0 text-sm font-medium text-brand">Abrir →</span>
               </Link>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </Card>
       )}
 
       {isAdmin && (
-        <section className="rounded-lg border border-gray-200 bg-white p-6">
-          <h2 className="mb-4 text-lg font-semibold">Novo site</h2>
+        <Card className="p-6">
+          <h2 className="mb-4 text-base font-semibold text-neutral-900">Novo site</h2>
           <SiteForm action={createSite} submitLabel="Criar site" />
-        </section>
+        </Card>
       )}
     </div>
   );

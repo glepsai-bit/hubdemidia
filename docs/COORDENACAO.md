@@ -39,7 +39,12 @@
 - [Implementador] **Fase 3 (monitoramento de tendências) — LOCK LIBERADO ~17:55** (commits `b84a6af` + `.gitignore`).
   Tudo liberado. **Front-end:** o `layout.tsx` está livre (2 links novos: Fontes, Tendências) e há 4 telas
   básicas novas p/ evoluir o visual: `sources/page.tsx`, `trends/page.tsx`, `SourceForm.tsx`, `CollectTrendsButton.tsx`.
-- [Front-end/UI] **LOCK LIBERADO ~02:55.** `GenerateForm.tsx` concluído (typecheck+lint limpos). Sem lock ativo.
+- [Front-end/UI] **EVOLUÇÃO VISUAL COMPLETA — LOCK LIBERADO.** Design system aplicado em todas as telas
+  (typecheck + lint + build limpos, 15 rotas). Tudo liberado. **Para os outros agentes:** existe agora um
+  design system em `src/components/ui/**` (Button, Field/Input/Textarea/Select, Card, Badge, PageHeader,
+  EmptyState, Stat, TextLink, FormError/FormSuccess, cn) — **reusem esses primitivos** em telas novas;
+  importem de `@/components/ui`. Tokens/acento da marca em `src/app/globals.css` (`bg-brand`, `text-brand`).
+  Telas novas: não recriar inputs/botões à mão. **Eu não toquei** `actions.ts` nem `src/lib/**`.
 - [QA] Fases 1-5 ✅ aprovadas (MVP completo). **LOCK LIBERADO ~21:45.** Itens 8 (timing-safe compare em `automation.ts`)
   e 9 (clamp 0-100 do score em `trends/index.ts`) aplicados e validados (tsc+lint+build). Tudo liberado.
 - [Implementador] **Fase 2 (IA nativa BYOK) — LOCK LIBERADO ~02:15** (commit `321fd9b`).
@@ -164,3 +169,11 @@
   **MVP do Roadmap (Fases 0–5) completo** — pronto para a revisão final do QA.
 - [Front-end/UI] Ajustes de texto/UX em `GenerateForm.tsx`: campo de palavras-chave renomeado p/ "sementes
   (opcional)" com dica, e nota de que a imagem sempre usa OpenAI (itens 5 e 7 do handoff). typecheck + lint OK.
+- [Front-end/UI] **Evolução visual completa do painel (design system).** Estilo SaaS limpo/neutro (Linear/Vercel):
+  - **Novo design system** em `src/components/ui/**`: `cn`, `Button`/`buttonClass`, `Field`/`Input`/`Textarea`/`Select`,
+    `Card`, `Badge`, `PageHeader`, `EmptyState`, `Stat`, `TextLink`/`linkClass`, `FormError`/`FormSuccess`.
+  - **Tokens** em `globals.css` (fundo neutro, acento `brand`, foco) + correção fonte (Geist) e `lang="pt-BR"`.
+  - **Nav responsiva** com item ativo e menu mobile (`DashboardNav.tsx`); casca em `dashboard/layout.tsx`.
+  - **Todas as telas refatoradas** sobre os primitivos: login, dashboard, sites (lista/detalhe/post),
+    publish, generate, settings, sources, trends, analytics + páginas públicas (tenants).
+  - Apenas camada presentacional — `actions.ts`/`src/lib/**` intactos. typecheck + lint + build (15 rotas) OK.

@@ -1,10 +1,18 @@
-// Tendências captadas (pautas). Lista por relevância ("fora da curva"); ações: usar/descartar. Tela básica.
+// Tendências captadas (pautas). Lista por relevância ("fora da curva"); ações: usar/descartar.
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { accessibleSiteIds } from "@/lib/access";
 import { CollectTrendsButton } from "@/components/CollectTrendsButton";
+import { Badge, Card, EmptyState, PageHeader, TextLink } from "@/components/ui";
 import { dismissTrend, markTrendUsed } from "./actions";
+
+// Tonalidade do selo de score conforme o sinal de "fora da curva".
+function scoreTone(score: number): "danger" | "warning" | "neutral" {
+  if (score >= 70) return "danger";
+  if (score >= 40) return "warning";
+  return "neutral";
+}
 
 export default async function TrendsPage() {
   const session = await auth();
@@ -26,64 +34,63 @@ export default async function TrendsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Tendências</h1>
-          <p className="text-sm text-gray-500">
-            Pautas captadas das suas fontes, ordenadas pelo sinal de &quot;fora da curva&quot;.
-          </p>
-        </div>
+      <PageHeader
+        title="Tendências"
+        description={'Pautas captadas das suas fontes, ordenadas pelo sinal de "fora da curva".'}
+      >
         {isAdmin && <CollectTrendsButton />}
-      </div>
+      </PageHeader>
 
       {trends.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-gray-500">
-          Nenhuma pauta nova.{" "}
-          <Link href="/dashboard/sources" className="text-blue-600 hover:underline">
-            Cadastrar fontes
-          </Link>{" "}
+        <EmptyState>
+          Nenhuma pauta nova. <TextLink href="/dashboard/sources">Cadastrar fontes</TextLink>{" "}
           {isAdmin && "e clicar em “Coletar agora”."}
-        </p>
+        </EmptyState>
       ) : (
-        <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+        <Card className="divide-y divide-neutral-100">
           {trends.map((t) => (
-            <li key={t.id} className="flex items-center justify-between gap-4 p-4">
+            <div key={t.id} className="flex items-center justify-between gap-4 p-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                    {t.score}
-                  </span>
+                  <Badge tone={scoreTone(t.score)}>{t.score}</Badge>
                   {t.url ? (
                     <a
                       href={t.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="truncate font-medium hover:underline"
+                      className="truncate font-medium text-neutral-900 hover:text-brand"
                     >
                       {t.title}
                     </a>
                   ) : (
-                    <span className="truncate font-medium">{t.title}</span>
+                    <span className="truncate font-medium text-neutral-900">{t.title}</span>
                   )}
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="mt-0.5 text-sm text-neutral-500">
                   {t.type} · {t.site?.name ?? "Global"}
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3 text-sm">
-                <Link href="/dashboard/generate" className="text-blue-600 hover:underline">
+              <div className="flex shrink-0 items-center gap-1">
+                <Link
+                  href="/dashboard/generate"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-brand hover:bg-neutral-100"
+                >
                   Gerar conteúdo
                 </Link>
                 <form action={markTrendUsed.bind(null, t.id)}>
-                  <button className="text-green-600 hover:underline">Marcar usada</button>
+                  <button className="rounded-md px-3 py-1.5 text-sm font-medium text-emerald-600 hover:bg-emerald-50">
+                    Marcar usada
+                  </button>
                 </form>
                 <form action={dismissTrend.bind(null, t.id)}>
-                  <button className="text-gray-500 hover:underline">Descartar</button>
+                  <button className="rounded-md px-3 py-1.5 text-sm font-medium text-neutral-500 hover:bg-neutral-100">
+                    Descartar
+                  </button>
                 </form>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </Card>
       )}
     </div>
   );

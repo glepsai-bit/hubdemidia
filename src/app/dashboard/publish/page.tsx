@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PublishForm } from "@/components/PublishForm";
+import { Card, EmptyState, PageHeader } from "@/components/ui";
 
 export default async function PublishPage() {
   const session = await auth();
@@ -15,19 +16,17 @@ export default async function PublishPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Publicação geral</h1>
-        <p className="text-sm text-gray-500">
-          Publique a mesma matéria em todos os sites (ou nos selecionados) de uma vez.
-        </p>
-      </div>
+      <PageHeader
+        title="Publicação geral"
+        description="Publique a mesma matéria em todos os sites (ou nos selecionados) de uma vez."
+      />
 
       {sites.length === 0 ? (
-        <p className="text-gray-500">Crie pelo menos um site antes de usar a publicação geral.</p>
+        <EmptyState>Crie pelo menos um site antes de usar a publicação geral.</EmptyState>
       ) : (
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <Card className="p-6">
           <PublishForm sites={sites} />
-        </div>
+        </Card>
       )}
     </div>
   );
