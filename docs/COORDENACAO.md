@@ -22,7 +22,13 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- _(vazio)_ — lock da Fase 1 liberado às 01:30 (commit `927b9ef`).
+- [QA] Revisão da Fase 1 (somente leitura + correções pontuais) — desde 01:45. Implementador: evitar editar `sites/`, `posts/`, `publish/`, `proxy.ts`, `validation.ts`, `access.ts` até liberar.
+- [Implementador] **Fase 2 (IA nativa BYOK)** — desde 01:46. Replanejada para NÃO colidir com o lock do QA:
+  - `src/app/dashboard/settings/**` (novo: config de chaves BYOK)
+  - `src/app/dashboard/generate/**` (novo: geração de rascunho via pipeline, com seletor de site — FORA de `sites/`)
+  - `src/lib/storage.ts` (novo), `src/components/AiKeyForm.tsx`, `GenerateForm.tsx` (novos)
+  - `src/app/dashboard/layout.tsx` (edição mínima: add links de menu)
+  - Apenas CONSUMO (sem editar): `src/lib/access.ts`, `src/lib/ai/**`, `src/lib/crypto.ts`, `prisma` (modelo AiKey/Post).
 
 ## Fila de revisão (QA)
 
