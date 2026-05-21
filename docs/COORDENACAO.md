@@ -40,8 +40,8 @@
   Tudo liberado. **Front-end:** o `layout.tsx` está livre (2 links novos: Fontes, Tendências) e há 4 telas
   básicas novas p/ evoluir o visual: `sources/page.tsx`, `trends/page.tsx`, `SourceForm.tsx`, `CollectTrendsButton.tsx`.
 - [Front-end/UI] **LOCK LIBERADO ~02:55.** `GenerateForm.tsx` concluído (typecheck+lint limpos). Sem lock ativo.
-- [QA] Fase 1 ✅ e Fase 2 ✅ aprovadas. **LOCK LIBERADO ~02:45.** Hardening dos itens 4/5 da Fase 2 aplicado
-  em `generate/actions.ts` (try/catch cobre imagem+create; P2002 → mensagem amigável; redirect fora do try). Tudo liberado.
+- [QA] Fases 1-5 ✅ aprovadas (MVP completo). **LOCK LIBERADO ~21:45.** Itens 8 (timing-safe compare em `automation.ts`)
+  e 9 (clamp 0-100 do score em `trends/index.ts`) aplicados e validados (tsc+lint+build). Tudo liberado.
 - [Implementador] **Fase 2 (IA nativa BYOK) — LOCK LIBERADO ~02:15** (commit `321fd9b`).
   `dashboard/settings/`, `dashboard/generate/`, `src/lib/storage.ts`, `AiKeyForm.tsx`, `GenerateForm.tsx`
   e `dashboard/layout.tsx` **liberados**. **Front-end:** o `layout.tsx` que você aguardava está livre;
@@ -56,11 +56,13 @@
 <!-- Implementador adiciona aqui o que terminou e precisa ser revisado pelo QA -->
 - ✅ **[Fase 1 — commit `927b9ef`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 - ✅ **[Fase 2 — commits `321fd9b` + `cfa70ce`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
+- ✅ **[Fase 4 — commit `fd0695d`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 - [Fase 4 — commit `fd0695d`] Revisar analytics first-party. Atenção:
   - `recordView` roda no render de Server Component (tenant pages) — efeito colateral em GET; aceitável em rota
     dinâmica, ignora bots por UA e nunca lança. Validar se não conta prefetch/duplo-render indevido.
   - `getSiteStats` usa `$queryRaw` (date_trunc) p/ séries por dia — conferir binding seguro (usa template tag, ok).
   - RBAC: página `/dashboard/analytics` filtra por `accessibleSiteIds`; sem site → mensagem. Smoke de agregação OK.
+- ✅ **[Fases 3+5 — commits `b84a6af` + `796d63f`] REVISADAS E APROVADAS pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 - [Fase 5 — commit `796d63f`] Revisar automação n8n. Atenção:
   - Auth dos webhooks via `isAuthorizedAutomation` (x-cron-secret OU admin). Smoke: 401 sem segredo, 200/400 com.
   - `/api/generate` usa as chaves BYOK de `AUTOMATION_USER_EMAIL` (fallback 1º admin) — sem chave → 500 com mensagem.
@@ -116,6 +118,29 @@
   6. ⚠️ (não-bloqueante) `storage.ts` grava em `/public/uploads` — ok no VPS; em FS read-only de prod falharia. Trocar por MinIO ao escalar (já no Roadmap).
   7. ✅ **RESOLVIDO pelo Front-end:** `GenerateForm.tsx` agora documenta sob o checkbox que a imagem é sempre
      gerada pela OpenAI (mesmo com texto em outro provedor) e exige chave OpenAI em Configurações.
+
+### Fases 3 + 4 + 5 (commits `b84a6af`, `fd0695d`, `796d63f`) — revisado em 21/05 ~21:30. **VEREDITO: aprovado, 0 bugs bloqueantes.** (MVP completo)
+- ✅ `tsc` + `eslint` + `next build` limpos (15 rotas, 2 API novas).
+- ✅ **SEGURANÇA — webhooks fail-closed** (`automation.ts`): smoke test runtime confirmou
+  `/api/generate` e `/api/trends/collect` → **401** sem segredo, **401** com segredo errado, **200** com `CRON_SECRET` correto.
+  Sem `CRON_SECRET` definido, o header não autoriza (só sessão admin). Comportamento seguro por padrão.
+- ✅ **SEGURANÇA — analytics SQL** (`analytics.ts`): `$queryRaw` usa **tagged template parametrizado** (bind vars),
+  não `$queryRawUnsafe` → sem injection. `recordView` nunca lança (try/catch), ignora bots por UA.
+- ✅ **RBAC Fase 3** (`sources/actions.ts`, `trends/actions.ts`): fonte/pauta global = ADMIN; por site = `canAccessSite`;
+  `collectNow` ADMIN-only; páginas filtram por `accessibleSiteIds`. Páginas novas → 307 /login (testado).
+- ✅ **Robustez de rede** (`trends/rss.ts`, `trends/index.ts`): fetch com timeout 8s + abort; `try/catch` por fonte
+  (uma fonte ruim não derruba o lote); parsing RSS/Atom + Google Trends (ns `ht:`) degrada para vazio sem crash.
+- ✅ **n8n** (`n8n.ts`): fire-and-forget, timeout 5s, try/catch, no-op sem `N8N_WEBHOOK_URL`; nunca bloqueia publish/coleta.
+  Hooks (`notifyN8n`) em `publishPost`/`publishToAll`/coleta são `await`ed mas a função nunca lança → seguros.
+- ✅ **Automação** (`ai/generate.ts` + `/api/generate`): `generatePostForSite` lança em erro, mas o route envolve
+  em `try/catch` → 500 tratado com mensagem (sem crash). `resolveAutomationUserId` usa `AUTOMATION_USER_EMAIL` ou 1º admin.
+- ⚠️ **Recomendações (não-bloqueantes):**
+  8. ✅ **CORRIGIDO pelo QA:** `automation.ts` — comparação de segredo agora usa `crypto.timingSafeEqual`
+     (com checagem de tamanho), constant-time. Auth dos webhooks já validada por smoke test antes da troca.
+  9. ✅ **CORRIGIDO pelo QA:** `trends/index.ts` `scoreItem` — score do Google Trends agora com `Math.max(0, …)` (clamp 0-100).
+  10. `Trend` não tem unique constraint (dedup é em app, check-then-insert): coleta concorrente poderia duplicar.
+      Baixo risco (trigger manual/serial). Unique do Postgres não cobriria pautas globais (siteId null), então dedup em app é a escolha pragmática.
+  11. `recordView` grava `country` de `x-vercel-ip-country` — no deploy VPS (escolhido) esse header não existe → sempre null. Trocar pelo header do proxy do VPS quando provisionar.
 
 ## Fila (próximas tarefas, sem dono ainda)
 

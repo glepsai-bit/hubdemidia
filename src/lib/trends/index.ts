@@ -14,8 +14,9 @@ export type { CollectSummary } from "./types";
  */
 function scoreItem(type: SourceType, item: FeedItem, index: number): number {
   if (type === "GOOGLE_TRENDS" && item.traffic) {
-    // 20.000 → ~80; 100.000+ → 100. Escala log-ish simples.
-    return Math.min(100, Math.round((Math.log10(item.traffic) - 2) * 33));
+    // 20.000 → ~80; 100.000+ → 100. Escala log-ish simples; clamp em 0-100
+    // (tráfego baixo, ex.: < 100, não deve gerar score negativo).
+    return Math.max(0, Math.min(100, Math.round((Math.log10(item.traffic) - 2) * 33)));
   }
   // RSS/WEBSITE: topo do feed pontua mais alto.
   return Math.max(10, 90 - index * 6);
