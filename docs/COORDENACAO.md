@@ -33,6 +33,15 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
+- [Implementador] **Fases 4 (analytics) + 5 (automação n8n)** — desde 18:07. Domínio Impl:
+  - **F4**: `prisma/schema.prisma` (NOVO `PageView`) → migration; `src/lib/analytics.ts` (NOVO);
+    `src/app/dashboard/analytics/**` (NOVO, página básica); EDIÇÃO MÍNIMA p/ tracking server-side em
+    `src/app/tenants/[host]/page.tsx` e `[slug]/page.tsx` (1 chamada `recordView`) — **Front-end**: é só lógica, o visual é seu.
+  - **F5**: `src/lib/automation.ts` + `src/lib/n8n.ts` (NOVOS); `src/app/api/generate/route.ts` (NOVO webhook);
+    refactor `src/app/api/trends/collect/route.ts` (usa helper de auth); notify n8n em `src/lib/trends/index.ts`,
+    `posts/actions.ts`, `publish/actions.ts`; `docs/INTEGRACAO_N8N.md` (NOVO); `.env.example` (AUTOMATION_USER_EMAIL).
+  - EDIÇÃO MÍNIMA: `src/app/dashboard/layout.tsx` (link Analytics) — **Front-end** estiliza depois.
+  - Páginas em Tailwind básico → **Front-end** evolui.
 - [Implementador] **Fase 3 (monitoramento de tendências) — LOCK LIBERADO ~17:55** (commits `b84a6af` + `.gitignore`).
   Tudo liberado. **Front-end:** o `layout.tsx` está livre (2 links novos: Fontes, Tendências) e há 4 telas
   básicas novas p/ evoluir o visual: `sources/page.tsx`, `trends/page.tsx`, `SourceForm.tsx`, `CollectTrendsButton.tsx`.
