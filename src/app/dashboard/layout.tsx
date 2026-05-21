@@ -22,6 +22,12 @@ export default async function DashboardLayout({
             <Link href="/dashboard/sites" className="text-sm text-gray-600 hover:text-gray-900">
               Sites
             </Link>
+            <Link href="/dashboard/generate" className="text-sm text-gray-600 hover:text-gray-900">
+              Gerar com IA
+            </Link>
+            <Link href="/dashboard/settings" className="text-sm text-gray-600 hover:text-gray-900">
+              Chaves IA
+            </Link>
             {isAdmin && (
               <Link
                 href="/dashboard/publish"
