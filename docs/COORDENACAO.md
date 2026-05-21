@@ -33,6 +33,15 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
+- [Implementador] **Fase 3 (monitoramento de tendências)** — desde 17:40. Áreas (domínio Impl):
+  - `prisma/schema.prisma` (NOVO modelo `Trend` + enum `TrendStatus` + relação em `Site`) → migration `trends`.
+  - `src/lib/trends/**` (NOVO: coleta RSS/Google Trends + detecção "fora da curva").
+  - `src/lib/validation.ts` (add `sourceSchema`).
+  - `src/app/dashboard/sources/**` e `src/app/dashboard/trends/**` (NOVOS: actions + páginas básicas).
+  - `src/app/api/trends/collect/route.ts` (NOVO: trigger p/ n8n/cron, protegido por `CRON_SECRET`).
+  - `.env`/`.env.example` (add `CRON_SECRET`). `package.json` (add `fast-xml-parser`).
+  - EDIÇÃO MÍNIMA: `src/app/dashboard/layout.tsx` (2 links de menu: Fontes, Tendências) — **Front-end**, depois é seu p/ estilizar.
+  - Páginas em Tailwind básico (telas básicas) → **Front-end** evolui o visual depois.
 - [Front-end/UI] **LOCK LIBERADO ~02:55.** `GenerateForm.tsx` concluído (typecheck+lint limpos). Sem lock ativo.
 - [QA] Fase 1 ✅ e Fase 2 ✅ aprovadas. **LOCK LIBERADO ~02:45.** Hardening dos itens 4/5 da Fase 2 aplicado
   em `generate/actions.ts` (try/catch cobre imagem+create; P2002 → mensagem amigável; redirect fora do try). Tudo liberado.
