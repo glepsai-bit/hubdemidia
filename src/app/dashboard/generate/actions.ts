@@ -48,7 +48,8 @@ export async function generateDraft(
       raw,
       niche: niche || undefined,
       sourceUrl: sourceUrl || undefined,
-      keywords,
+      keywords, // sementes manuais (opcionais)
+      researchKeywords: true, // pesquisa palavras-chave reais (Google Suggest) a partir do título
       withImage,
     });
   } catch (e) {

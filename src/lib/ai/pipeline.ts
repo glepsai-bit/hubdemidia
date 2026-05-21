@@ -5,6 +5,7 @@ import type { ProviderName } from "./types";
 import { runReaderAgent } from "./agents/reader";
 import { runImageAgent } from "./agents/image";
 import { runSeoAgent } from "./agents/seo";
+import { researchKeywordStrings } from "@/lib/keywords";
 
 export interface PipelineInput {
   userId: string; // dono da chave BYOK
@@ -12,7 +13,10 @@ export interface PipelineInput {
   raw: string; // material/notícia bruta
   niche?: string;
   sourceUrl?: string;
-  keywords: string[]; // palavras-chave reais (pesquisa externa)
+  /** Sementes manuais de palavras-chave (opcional). */
+  keywords?: string[];
+  /** Pesquisa palavras-chave reais a partir do título (default true). */
+  researchKeywords?: boolean;
   withImage?: boolean;
 }
 
@@ -25,6 +29,8 @@ export interface PipelineResult {
   imageUrl?: string;
   imageB64?: string;
   suggestions: string[];
+  /** Palavras-chave efetivamente usadas pelo agente SEO. */
+  keywords: string[];
 }
 
 export async function runContentPipeline(input: PipelineInput): Promise<PipelineResult> {
@@ -37,14 +43,22 @@ export async function runContentPipeline(input: PipelineInput): Promise<Pipeline
     sourceUrl: input.sourceUrl,
   });
 
-  // 2) SEO: avalia e melhora
+  // 2) Palavras-chave: pesquisa real (Google Suggest) a partir do título + sementes manuais.
+  const manualSeeds = input.keywords ?? [];
+  let keywords = manualSeeds;
+  if (input.researchKeywords !== false) {
+    keywords = await researchKeywordStrings(draft.title, manualSeeds);
+  }
+  if (keywords.length === 0) keywords = [draft.title];
+
+  // 3) SEO: avalia e melhora usando as palavras-chave reais
   const seo = await runSeoAgent(text, {
     title: draft.title,
     content: draft.content,
-    keywords: input.keywords,
+    keywords,
   });
 
-  // 3) Imagem (opcional)
+  // 4) Imagem (opcional)
   let imageUrl: string | undefined;
   let imageB64: string | undefined;
   if (input.withImage) {
@@ -66,5 +80,6 @@ export async function runContentPipeline(input: PipelineInput): Promise<Pipeline
     imageUrl,
     imageB64,
     suggestions: seo.suggestions,
+    keywords,
   };
 }
