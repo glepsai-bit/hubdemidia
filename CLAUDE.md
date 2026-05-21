@@ -4,6 +4,14 @@
 > a cada sessão. Mantenha-o atualizado conforme decisões forem tomadas.
 > Histórico de decisões e progresso fica em [docs/MEMORIA.md](docs/MEMORIA.md).
 
+## ⚠️ Trabalho em paralelo (dois agentes)
+
+Dois agentes atuam nesta pasta ao mesmo tempo e **não se enxergam em tempo real**.
+**Antes de editar qualquer arquivo**, consulte [docs/COORDENACAO.md](docs/COORDENACAO.md),
+reivindique os arquivos que vai tocar e atualize o quadro ao terminar. Papéis:
+- **Implementador** — escreve features novas (Roadmap).
+- **QA / Correção** — após cada implementação, busca erros e corrige; não cria features novas.
+
 ## O que é
 
 Painel de administração de um **hub de sites** (e, num segundo momento, redes sociais como Instagram).
