@@ -44,4 +44,17 @@
 - Trabalho coordenado via `docs/COORDENACAO.md` (handoff p/ QA registrado). Dados de teste no dev: site `demo`.
 - **Decisões de escopo**: pages/media e parser de markdown ficam para depois; provisionamento real de domínio é etapa de deploy.
 
+## 2026-05-21 — Fase 2 concluída (IA nativa BYOK)
+- **Config de chaves BYOK** em `/dashboard/settings`: cada usuário cadastra Claude/GPT/Grok; chaves
+  criptografadas (AES-256-GCM via `crypto.ts`), nunca exibidas de volta. Actions: `settings/actions.ts`.
+- **Geração de rascunho** em `/dashboard/generate` (FORA de `sites/` para não colidir com lock do QA):
+  roda `runContentPipeline` (Leitor→SEO→Imagem) e cria Post DRAFT `createdByAi`. Action: `generate/actions.ts`.
+- **`storage.ts`**: persiste imagem gerada (b64) em `/public/uploads`.
+- Telas básicas (Tailwind mínimo) — o agente **Front-end/UI** evoluirá o visual depois.
+- Commit `321fd9b`. typecheck+lint+build OK; smoke test de cripto e de erro de chave ausente OK.
+- **Coordenação**: surgiu um 3º agente (Front-end/UI) e fronteira de arquivos (Impl/QA = `actions.ts`+`lib`+`prisma`;
+  Front = `.tsx`+`components`+`css`). QA **aprovou a Fase 1 (0 bugs)** e confirmou que o Proxy importar Prisma
+  NÃO é bug (Next 16 roda Proxy em Node runtime). Liberei o lock da Fase 2 e o `layout.tsx` p/ o Front-end.
+- **Pendente da Fase 2**: integrar API real de keyword research (hoje as palavras-chave são manuais).
+
 <!-- Adicione novas entradas abaixo, mais recentes no topo de cada data. -->

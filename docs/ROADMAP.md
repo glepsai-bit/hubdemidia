@@ -17,13 +17,15 @@ Objetivo: **pôr no ar o mais rápido possível** com bom custo-benefício. MVP 
       provisionamento real do domínio (DNS/cert) é etapa de deploy.
 - [x] Editor de conteúdo + **publicação manual** (site individual e "geral/todos").
 
-## Fase 2 — IA nativa (BYOK)
-- [ ] Tela de configuração de chaves (Claude/GPT/Grok), criptografadas.
-- [ ] Adapter `AIProvider` agnóstico.
-- [ ] Agente **Leitor** (lê/reescreve notícia).
-- [ ] Agente **Imagem** (gera/refaz imagem).
-- [ ] Agente **SEO** (otimiza com dados de palavras-chave).
-- [ ] Pipeline encadeado: notícia → leitor → imagem → SEO → rascunho.
+## Fase 2 — IA nativa (BYOK) ✅
+- [x] Tela de configuração de chaves (Claude/GPT/Grok), criptografadas (`/dashboard/settings`).
+- [x] Adapter `AIProvider` agnóstico (`src/lib/ai/`).
+- [x] Agente **Leitor** (lê/reescreve notícia).
+- [x] Agente **Imagem** (gera/refaz imagem) + storage local da imagem gerada.
+- [x] Agente **SEO** (otimiza com palavras-chave).
+- [x] Pipeline encadeado: notícia → leitor → SEO → imagem → rascunho (`/dashboard/generate`).
+- [~] **Palavras-chave** ainda são informadas à mão; integrar uma **API de keyword research real**
+      (volume/dificuldade) é a evolução pendente desta fase.
 
 ## Fase 3 — Monitoramento de tendências
 - [ ] Cadastro de fontes (Google Trends, RSS, sites escolhidos) globais e por site.
