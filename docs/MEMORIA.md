@@ -78,4 +78,16 @@
 - Infra: `.env.example` passou a ser versionado (exceção no `.gitignore`); `.env` segue ignorado.
 - **Pendente/decisão**: scoring é heurístico; encadear pauta→pipeline 100% automático fica p/ a fase de automação (n8n)/cron real.
 
+## 2026-05-21 — Fases 4 e 5 (MVP Roadmap completo)
+- **Fase 4 (Analytics)**: analytics **first-party** (custo zero, sem GA4/Plausible). Modelo `PageView`
+  (migration `analytics`); `recordView` server-side nas páginas públicas (ignora bots, nunca quebra);
+  `getSiteStats` (totais, série por dia via `date_trunc`, top posts). Página `/dashboard/analytics`. Commit `fd0695d`.
+- **Fase 5 (Automação n8n)**: webhooks de **entrada** `POST /api/generate` (dispara pipeline → rascunho/publica)
+  e `POST /api/trends/collect`, autorizados por `isAuthorizedAutomation` (x-cron-secret OU admin).
+  **Saída** `notifyN8n` (fire-and-forget) nos eventos trends.collected/post.generated/post.published/posts.published_all.
+  `AUTOMATION_USER_EMAIL` define a chave BYOK da automação. Helper `src/lib/ai/generate.ts`. Docs `INTEGRACAO_N8N.md`. Commit `796d63f`.
+- **MVP (Fases 0–5) completo.** Tudo com build+typecheck+lint+smoke OK. Aguardando revisão final do QA.
+- **Decisões**: analytics próprio em vez de serviço externo (custo/privacidade); cron real fica a cargo do n8n (Schedule);
+  geração via automação cria DRAFT por padrão (autoPublish opcional) para controlar custo de IA e revisão.
+
 <!-- Adicione novas entradas abaixo, mais recentes no topo de cada data. -->

@@ -36,13 +36,16 @@ Objetivo: **pôr no ar o mais rápido possível** com bom custo-benefício. MVP 
 - [~] **Disparo automático do pipeline a partir da pauta**: hoje é semi-automático (pauta → "Gerar conteúdo").
       Encadear pauta→pipeline 100% no automático fica para a fase de automação (n8n) / agendamento real.
 
-## Fase 4 — Analytics
-- [ ] Integração de analytics por site (Umami/Plausible ou GA4).
-- [ ] Dashboard de acessos/métricas por site no painel.
+## Fase 4 — Analytics ✅
+- [x] Analytics **first-party** por site (self-host, custo zero — sem GA4/Plausible). Modelo `PageView` +
+      tracking server-side nas páginas públicas. `src/lib/analytics.ts`.
+- [x] Dashboard de acessos/métricas por site (`/dashboard/analytics`): totais, por dia, posts mais vistos.
+      _Evolução opcional: trocar/empilhar com Umami/Plausible se quiser métricas mais ricas._
 
-## Fase 5 — Automação n8n
-- [ ] Webhooks de entrada/saída para o n8n.
-- [ ] Disparar pipelines via n8n.
+## Fase 5 — Automação n8n ✅
+- [x] Webhooks de **entrada** (`POST /api/generate`, `POST /api/trends/collect`) e **saída** (`notifyN8n`).
+- [x] Disparar o pipeline via n8n (`/api/generate` cria rascunho ou publica). Docs: `docs/INTEGRACAO_N8N.md`.
+- [~] **Cron real**: hoje o disparo é externo (n8n Schedule chamando os webhooks). Agendador interno fica opcional.
 
 ## Pós-V1 — Redes sociais
 - [ ] API por site para postar/publicar (Instagram etc.).

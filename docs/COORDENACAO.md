@@ -33,15 +33,9 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- [Implementador] **Fases 4 (analytics) + 5 (automação n8n)** — desde 18:07. Domínio Impl:
-  - **F4**: `prisma/schema.prisma` (NOVO `PageView`) → migration; `src/lib/analytics.ts` (NOVO);
-    `src/app/dashboard/analytics/**` (NOVO, página básica); EDIÇÃO MÍNIMA p/ tracking server-side em
-    `src/app/tenants/[host]/page.tsx` e `[slug]/page.tsx` (1 chamada `recordView`) — **Front-end**: é só lógica, o visual é seu.
-  - **F5**: `src/lib/automation.ts` + `src/lib/n8n.ts` (NOVOS); `src/app/api/generate/route.ts` (NOVO webhook);
-    refactor `src/app/api/trends/collect/route.ts` (usa helper de auth); notify n8n em `src/lib/trends/index.ts`,
-    `posts/actions.ts`, `publish/actions.ts`; `docs/INTEGRACAO_N8N.md` (NOVO); `.env.example` (AUTOMATION_USER_EMAIL).
-  - EDIÇÃO MÍNIMA: `src/app/dashboard/layout.tsx` (link Analytics) — **Front-end** estiliza depois.
-  - Páginas em Tailwind básico → **Front-end** evolui.
+- [Implementador] **Fases 4 (analytics) + 5 (automação n8n) — LOCK LIBERADO ~18:25** (commits `fd0695d` + `796d63f`).
+  Tudo liberado. **Front-end:** telas básicas novas p/ evoluir: `dashboard/analytics/page.tsx` (+ link no `layout.tsx`).
+  Tracking de analytics nas páginas de tenant é só 1 linha de lógica (`recordView`) — o visual delas é seu.
 - [Implementador] **Fase 3 (monitoramento de tendências) — LOCK LIBERADO ~17:55** (commits `b84a6af` + `.gitignore`).
   Tudo liberado. **Front-end:** o `layout.tsx` está livre (2 links novos: Fontes, Tendências) e há 4 telas
   básicas novas p/ evoluir o visual: `sources/page.tsx`, `trends/page.tsx`, `SourceForm.tsx`, `CollectTrendsButton.tsx`.
@@ -62,7 +56,17 @@
 <!-- Implementador adiciona aqui o que terminou e precisa ser revisado pelo QA -->
 - ✅ **[Fase 1 — commit `927b9ef`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 - ✅ **[Fase 2 — commits `321fd9b` + `cfa70ce`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
-- [Fase 3 — commit `b84a6af`] Revisar monitoramento de tendências. Pontos de atenção:
+- [Fase 4 — commit `fd0695d`] Revisar analytics first-party. Atenção:
+  - `recordView` roda no render de Server Component (tenant pages) — efeito colateral em GET; aceitável em rota
+    dinâmica, ignora bots por UA e nunca lança. Validar se não conta prefetch/duplo-render indevido.
+  - `getSiteStats` usa `$queryRaw` (date_trunc) p/ séries por dia — conferir binding seguro (usa template tag, ok).
+  - RBAC: página `/dashboard/analytics` filtra por `accessibleSiteIds`; sem site → mensagem. Smoke de agregação OK.
+- [Fase 5 — commit `796d63f`] Revisar automação n8n. Atenção:
+  - Auth dos webhooks via `isAuthorizedAutomation` (x-cron-secret OU admin). Smoke: 401 sem segredo, 200/400 com.
+  - `/api/generate` usa as chaves BYOK de `AUTOMATION_USER_EMAIL` (fallback 1º admin) — sem chave → 500 com mensagem.
+  - `notifyN8n` é fire-and-forget (timeout 5s, try/catch) — sem `N8N_WEBHOOK_URL` vira no-op. Não bloqueia publish/coleta.
+  - `src/lib/ai/generate.ts` duplica levemente a lógica de `generate/actions.ts` (slug único etc.) — possível DRY futuro
+    (a action do painel ficou intacta de propósito p/ não desfazer o hardening do QA).
   - **RBAC**: fonte/pauta global = ADMIN; por site = `canAccessSite` (`sources/actions.ts`, `trends/actions.ts`).
     `collectNow` é ADMIN-only; a página `trends` filtra por `accessibleSiteIds` (global + sites do usuário).
   - **Rota `POST /api/trends/collect`**: autoriza por `x-cron-secret` (== `CRON_SECRET`) OU sessão admin.
@@ -128,5 +132,10 @@
   alimentando o agente SEO (commit `cfa70ce`). Fase 2 **100% completa**. Build + typecheck + lint + smoke test OK.
 - [Implementador] **Fase 3**: monitoramento de tendências — fontes (RSS/Google Trends) + coleta + scoring
   "fora da curva" + pautas + rota p/ n8n/cron (commit `b84a6af`). Build + typecheck + lint + smoke test (feeds reais) OK.
+- [Implementador] **Fase 4**: analytics first-party por site (PageView + tracking + /dashboard/analytics)
+  (commit `fd0695d`). Build + typecheck + lint + smoke (agregação) OK.
+- [Implementador] **Fase 5**: automação n8n — webhooks de entrada (`/api/generate`, `/api/trends/collect`)
+  e saída (`notifyN8n`) + docs (commit `796d63f`). Build + typecheck + lint + smoke (auth) OK.
+  **MVP do Roadmap (Fases 0–5) completo** — pronto para a revisão final do QA.
 - [Front-end/UI] Ajustes de texto/UX em `GenerateForm.tsx`: campo de palavras-chave renomeado p/ "sementes
   (opcional)" com dica, e nota de que a imagem sempre usa OpenAI (itens 5 e 7 do handoff). typecheck + lint OK.
