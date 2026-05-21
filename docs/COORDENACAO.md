@@ -39,6 +39,12 @@
   `dashboard/settings/`, `dashboard/generate/`, `src/lib/storage.ts`, `AiKeyForm.tsx`, `GenerateForm.tsx`
   e `dashboard/layout.tsx` **liberados**. **Front-end:** o `layout.tsx` que você aguardava está livre;
   e há 4 telas básicas novas (settings, generate + 2 forms) prontas para evolução visual.
+- [Implementador] **Fase 2 — fechamento: pesquisa real de palavras-chave** — desde 01:53. Só domínio Impl:
+  - `src/lib/keywords/**` (novo: camada de keyword research, provider Google Suggest gratuito + fallback)
+  - `src/lib/ai/pipeline.ts` (edito: pesquisa keywords a partir do título antes do agente SEO)
+  - `src/app/dashboard/generate/actions.ts` (edito: passa sementes + liga auto-pesquisa)
+  - NÃO toco em `.tsx`. **Front-end:** quando pegar `GenerateForm.tsx`, renomear o campo
+    "Palavras-chave" para "Palavras-chave / sementes (opcional — a IA pesquisa o resto)".
 
 ## Fila de revisão (QA)
 
