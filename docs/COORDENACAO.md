@@ -39,12 +39,10 @@
   `dashboard/settings/`, `dashboard/generate/`, `src/lib/storage.ts`, `AiKeyForm.tsx`, `GenerateForm.tsx`
   e `dashboard/layout.tsx` **liberados**. **Front-end:** o `layout.tsx` que você aguardava está livre;
   e há 4 telas básicas novas (settings, generate + 2 forms) prontas para evolução visual.
-- [Implementador] **Fase 2 — fechamento: pesquisa real de palavras-chave** — desde 01:53. Só domínio Impl:
-  - `src/lib/keywords/**` (novo: camada de keyword research, provider Google Suggest gratuito + fallback)
-  - `src/lib/ai/pipeline.ts` (edito: pesquisa keywords a partir do título antes do agente SEO)
-  - `src/app/dashboard/generate/actions.ts` (edito: passa sementes + liga auto-pesquisa)
-  - NÃO toco em `.tsx`. **Front-end:** quando pegar `GenerateForm.tsx`, renomear o campo
-    "Palavras-chave" para "Palavras-chave / sementes (opcional — a IA pesquisa o resto)".
+- [Implementador] **Fase 2 — fechamento (pesquisa real de palavras-chave) — LOCK LIBERADO ~02:05** (commit `cfa70ce`).
+  `src/lib/keywords/**`, `src/lib/ai/pipeline.ts`, `src/app/dashboard/generate/actions.ts` **liberados**.
+  **Front-end:** pendência cosmética em `GenerateForm.tsx` — renomear o campo "Palavras-chave" para
+  "Palavras-chave / sementes (opcional — a IA pesquisa o resto)".
 
 ## Fila de revisão (QA)
 
@@ -58,6 +56,12 @@
   - **`storage.ts`**: escreve em `/public/uploads` (ok em VPS; em FS read-only de prod falharia — trocar por MinIO).
   - Erro do pipeline (chave ausente / falha do provedor) é capturado e devolvido como mensagem amigável no form.
   - Não consegui testar a chamada real às APIs (sem chave BYOK) — validei wiring, cripto e caminho de erro.
+- [Fase 2 — fechamento — commit `cfa70ce`] Revisar pesquisa real de palavras-chave (`src/lib/keywords/**`). Atenção:
+  - **Fonte gratuita** Google Suggest (sem volume absoluto, só termos reais); chamada com timeout 5s +
+    `try/catch` → degrada para fallback de extração offline. Smoke test (chamada real PT-BR + fallback) passou.
+  - Pipeline pesquisa keywords a partir do **título** (gerado pelo Leitor) + sementes manuais, antes do SEO.
+  - Robustez de rede: confirmar comportamento se o endpoint do Google bloquear/retornar 429 (deve cair no fallback).
+  - Possível evolução (não-bloqueante): provider BYOK de volume real (DataForSEO/SEMrush) — exigiria modelo de chave.
 
 ## Erros encontrados / correções (QA)
 
@@ -92,3 +96,5 @@
   Build + typecheck + lint + smoke test OK. **Revisada e aprovada pelo QA (0 bugs).**
 - [Implementador] **Fase 2**: IA nativa BYOK — config de chaves criptografadas + geração de rascunho
   via pipeline (Leitor→SEO→Imagem) (commit `321fd9b`). Build + typecheck + lint + smoke test (cripto) OK.
+- [Implementador] **Fase 2 (fechamento)**: pesquisa real de palavras-chave (Google Suggest + fallback)
+  alimentando o agente SEO (commit `cfa70ce`). Fase 2 **100% completa**. Build + typecheck + lint + smoke test OK.

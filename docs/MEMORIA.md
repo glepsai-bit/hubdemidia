@@ -57,4 +57,14 @@
   NÃO é bug (Next 16 roda Proxy em Node runtime). Liberei o lock da Fase 2 e o `layout.tsx` p/ o Front-end.
 - **Pendente da Fase 2**: integrar API real de keyword research (hoje as palavras-chave são manuais).
 
+## 2026-05-21 — Fase 2 100% completa (pesquisa real de palavras-chave)
+- Fechado o gap da Fase 2: o agente **SEO agora usa dados reais de pesquisa de palavras-chave**.
+- Nova camada `src/lib/keywords/` provider-agnóstica: **Google Suggest** (autocomplete, gratuito, sem chave,
+  retorna buscas reais) + **fallback offline** por extração de termos (quando sem rede). Dedup + limite.
+- **Pipeline** pesquisa keywords a partir do **título** (gerado pelo Leitor) + sementes manuais, ANTES do SEO,
+  e devolve `keywords` usadas. Palavras-chave deixaram de ser manuais → viram sementes opcionais.
+- Commit `cfa70ce`. typecheck + lint + build + smoke test (chamada real PT-BR + fallback) OK.
+- **Decisão**: fonte gratuita (Google Suggest) em vez de API paga; não dá volume absoluto, mas dá termos reais.
+  Volume/dificuldade reais (DataForSEO/SEMrush) ficam como provider BYOK opcional futuro (exigiria modelo de chave).
+
 <!-- Adicione novas entradas abaixo, mais recentes no topo de cada data. -->

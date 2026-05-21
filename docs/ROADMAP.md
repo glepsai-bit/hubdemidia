@@ -23,9 +23,10 @@ Objetivo: **pôr no ar o mais rápido possível** com bom custo-benefício. MVP 
 - [x] Agente **Leitor** (lê/reescreve notícia).
 - [x] Agente **Imagem** (gera/refaz imagem) + storage local da imagem gerada.
 - [x] Agente **SEO** (otimiza com palavras-chave).
-- [x] Pipeline encadeado: notícia → leitor → SEO → imagem → rascunho (`/dashboard/generate`).
-- [~] **Palavras-chave** ainda são informadas à mão; integrar uma **API de keyword research real**
-      (volume/dificuldade) é a evolução pendente desta fase.
+- [x] Pipeline encadeado: notícia → leitor → pesquisa de palavras-chave → SEO → imagem → rascunho (`/dashboard/generate`).
+- [x] **Pesquisa real de palavras-chave** (Google Suggest, gratuita) alimentando o agente SEO; sementes
+      manuais viram opcionais. Camada `src/lib/keywords/` é provider-agnóstica.
+      _Evolução opcional futura: provider BYOK de volume/dificuldade absolutos (DataForSEO/SEMrush)._
 
 ## Fase 3 — Monitoramento de tendências
 - [ ] Cadastro de fontes (Google Trends, RSS, sites escolhidos) globais e por site.
