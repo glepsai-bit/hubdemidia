@@ -34,4 +34,14 @@
 - `next.config.ts`: fixado `turbopack.root` (havia lockfile solto na home). `middleware`→`proxy` (Next 16).
 - Build e typecheck passando. **Próximo: Fase 1** (CRUD de sites + posts + publicação manual).
 
+## 2026-05-21 — Fase 1 concluída (MVP de gestão de sites)
+- **CRUD de sites** (admin) com RBAC; editores só veem sites permitidos. Server actions em `dashboard/sites/actions.ts`.
+- **CRUD de posts** por site + **publicação manual** (publicar/despublicar). `dashboard/sites/[siteId]/posts/actions.ts`.
+- **Publicação geral**: cria a mesma matéria (PUBLISHED) em todos os sites ou selecionados. `dashboard/publish/`.
+- **Multi-tenant**: `proxy.ts` reescreve por host → `/tenants/[host]`; páginas públicas (home do site + post).
+- Validações zod em `src/lib/validation.ts`; formulários client com `useActionState`.
+- Build, typecheck, lint e smoke test (host routing + guard) OK. Commit `927b9ef`.
+- Trabalho coordenado via `docs/COORDENACAO.md` (handoff p/ QA registrado). Dados de teste no dev: site `demo`.
+- **Decisões de escopo**: pages/media e parser de markdown ficam para depois; provisionamento real de domínio é etapa de deploy.
+
 <!-- Adicione novas entradas abaixo, mais recentes no topo de cada data. -->

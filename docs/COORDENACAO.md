@@ -22,17 +22,20 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- [Implementador] **Fase 1** — desde 01:07. Arquivos/áreas:
-  - `src/app/dashboard/**` (layout, sites CRUD, posts CRUD, publicação geral) — edita `dashboard/page.tsx`
-  - `src/app/tenants/**` (renderização pública multi-tenant)
-  - `src/proxy.ts` (adiciona rewrite por host para tenants)
-  - `src/lib/validation.ts`, `src/components/**` (novos)
-  - NÃO toco em: `prisma/schema.prisma` exceto se necessário (avisarei), `CLAUDE.md`.
+- _(vazio)_ — lock da Fase 1 liberado às 01:30 (commit `927b9ef`).
 
 ## Fila de revisão (QA)
 
 <!-- Implementador adiciona aqui o que terminou e precisa ser revisado pelo QA -->
-- _(vazio)_
+- [Fase 1 — commit `927b9ef`] Revisar CRUD de sites/posts, publicação manual e geral, e multi-tenant.
+  Pontos de atenção sugeridos:
+  - **RBAC**: editor não-admin não deve criar/editar/excluir sites; só gerenciar posts de sites permitidos
+    (`src/app/dashboard/sites/actions.ts`, `posts/actions.ts`, `access.ts`).
+  - **Proxy edge vs Prisma**: `src/proxy.ts` importa `@/lib/auth` (puxa Prisma). Build passou, mas confirmar
+    que não quebra em runtime de produção (edge). Se quebrar, separar `auth.config.ts` sem adapter p/ o proxy.
+  - **Validação de slug/domínio** e colisões (unique) nas actions.
+  - **Markdown**: posts renderizam como texto pré-formatado (sem parser). Não é bug, é escopo — anotar p/ depois.
+  - Dados de teste no banco dev: site `demo` + post `ola-mundo` (criados no smoke test).
 
 ## Erros encontrados / correções (QA)
 
@@ -46,3 +49,5 @@
 ## Concluído
 
 - [Implementador] Fundação: Next.js 16 + Prisma + Auth.js + camada de IA (commit `fd2c53d`)
+- [Implementador] **Fase 1**: CRUD sites/posts, publicação manual e geral, multi-tenant (commit `927b9ef`).
+  Build + typecheck + lint + smoke test OK.
