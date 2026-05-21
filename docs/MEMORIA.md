@@ -67,4 +67,15 @@
 - **Decisão**: fonte gratuita (Google Suggest) em vez de API paga; não dá volume absoluto, mas dá termos reais.
   Volume/dificuldade reais (DataForSEO/SEMrush) ficam como provider BYOK opcional futuro (exigiria modelo de chave).
 
+## 2026-05-21 — Fase 3 (monitoramento de tendências)
+- Novo modelo **Trend** (+ enum `TrendStatus`, relação em `Site`) — migration `trends`.
+- Camada `src/lib/trends/`: coleta **RSS/Atom** e **Google Trends RSS** (via `fast-xml-parser`, namespace `ht:`),
+  scoring "fora da curva" (tráfego do Trends / posição no feed), dedup por escopo+título.
+- **Fontes** (`/dashboard/sources`): CRUD global (admin) e por site (RBAC), ativar/desativar.
+- **Tendências** (`/dashboard/trends`): pautas por relevância; coletar agora (admin); usar/descartar.
+- **Automação**: `POST /api/trends/collect` (auth por `x-cron-secret`==`CRON_SECRET` OU sessão admin) p/ n8n/cron.
+- Smoke test com feeds REAIS (G1 + Google Trends BR): 35 itens captados, dedup confirmado (2ª coleta = 0). Commit `b84a6af`.
+- Infra: `.env.example` passou a ser versionado (exceção no `.gitignore`); `.env` segue ignorado.
+- **Pendente/decisão**: scoring é heurístico; encadear pauta→pipeline 100% automático fica p/ a fase de automação (n8n)/cron real.
+
 <!-- Adicione novas entradas abaixo, mais recentes no topo de cada data. -->

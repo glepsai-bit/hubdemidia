@@ -33,15 +33,9 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- [Implementador] **Fase 3 (monitoramento de tendências)** — desde 17:40. Áreas (domínio Impl):
-  - `prisma/schema.prisma` (NOVO modelo `Trend` + enum `TrendStatus` + relação em `Site`) → migration `trends`.
-  - `src/lib/trends/**` (NOVO: coleta RSS/Google Trends + detecção "fora da curva").
-  - `src/lib/validation.ts` (add `sourceSchema`).
-  - `src/app/dashboard/sources/**` e `src/app/dashboard/trends/**` (NOVOS: actions + páginas básicas).
-  - `src/app/api/trends/collect/route.ts` (NOVO: trigger p/ n8n/cron, protegido por `CRON_SECRET`).
-  - `.env`/`.env.example` (add `CRON_SECRET`). `package.json` (add `fast-xml-parser`).
-  - EDIÇÃO MÍNIMA: `src/app/dashboard/layout.tsx` (2 links de menu: Fontes, Tendências) — **Front-end**, depois é seu p/ estilizar.
-  - Páginas em Tailwind básico (telas básicas) → **Front-end** evolui o visual depois.
+- [Implementador] **Fase 3 (monitoramento de tendências) — LOCK LIBERADO ~17:55** (commits `b84a6af` + `.gitignore`).
+  Tudo liberado. **Front-end:** o `layout.tsx` está livre (2 links novos: Fontes, Tendências) e há 4 telas
+  básicas novas p/ evoluir o visual: `sources/page.tsx`, `trends/page.tsx`, `SourceForm.tsx`, `CollectTrendsButton.tsx`.
 - [Front-end/UI] **LOCK LIBERADO ~02:55.** `GenerateForm.tsx` concluído (typecheck+lint limpos). Sem lock ativo.
 - [QA] Fase 1 ✅ e Fase 2 ✅ aprovadas. **LOCK LIBERADO ~02:45.** Hardening dos itens 4/5 da Fase 2 aplicado
   em `generate/actions.ts` (try/catch cobre imagem+create; P2002 → mensagem amigável; redirect fora do try). Tudo liberado.
@@ -59,6 +53,16 @@
 <!-- Implementador adiciona aqui o que terminou e precisa ser revisado pelo QA -->
 - ✅ **[Fase 1 — commit `927b9ef`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 - ✅ **[Fase 2 — commits `321fd9b` + `cfa70ce`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
+- [Fase 3 — commit `b84a6af`] Revisar monitoramento de tendências. Pontos de atenção:
+  - **RBAC**: fonte/pauta global = ADMIN; por site = `canAccessSite` (`sources/actions.ts`, `trends/actions.ts`).
+    `collectNow` é ADMIN-only; a página `trends` filtra por `accessibleSiteIds` (global + sites do usuário).
+  - **Rota `POST /api/trends/collect`**: autoriza por `x-cron-secret` (== `CRON_SECRET`) OU sessão admin.
+    Conferir: sem `CRON_SECRET` definido e sem sessão admin → 401 (não coleta).
+  - **Coleta** (`src/lib/trends/`): fetch com timeout 8s + `try/catch` por fonte (uma fonte ruim não derruba o lote);
+    dedup por escopo+título (smoke test: 35 itens, 2ª coleta inseriu 0). Parsing RSS e Google Trends (ns `ht:`).
+  - **Scoring "fora da curva"** é heurístico (tráfego do Trends / posição no feed) — validar se faz sentido p/ o produto.
+  - Idempotência: re-coletar não duplica; mas títulos iguais com o tempo não "reanimam" (status fica NEW até ação). OK p/ V1.
+  - Possível melhoria (não-bloqueante): cron real (node-cron/n8n agendado) chamando a rota; hoje o trigger é manual/externo.
 
 ## Erros encontrados / correções (QA)
 
@@ -113,5 +117,7 @@
   via pipeline (Leitor→SEO→Imagem) (commit `321fd9b`). Build + typecheck + lint + smoke test (cripto) OK.
 - [Implementador] **Fase 2 (fechamento)**: pesquisa real de palavras-chave (Google Suggest + fallback)
   alimentando o agente SEO (commit `cfa70ce`). Fase 2 **100% completa**. Build + typecheck + lint + smoke test OK.
+- [Implementador] **Fase 3**: monitoramento de tendências — fontes (RSS/Google Trends) + coleta + scoring
+  "fora da curva" + pautas + rota p/ n8n/cron (commit `b84a6af`). Build + typecheck + lint + smoke test (feeds reais) OK.
 - [Front-end/UI] Ajustes de texto/UX em `GenerateForm.tsx`: campo de palavras-chave renomeado p/ "sementes
   (opcional)" com dica, e nota de que a imagem sempre usa OpenAI (itens 5 e 7 do handoff). typecheck + lint OK.

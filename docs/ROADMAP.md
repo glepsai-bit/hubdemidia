@@ -28,10 +28,13 @@ Objetivo: **pôr no ar o mais rápido possível** com bom custo-benefício. MVP 
       manuais viram opcionais. Camada `src/lib/keywords/` é provider-agnóstica.
       _Evolução opcional futura: provider BYOK de volume/dificuldade absolutos (DataForSEO/SEMrush)._
 
-## Fase 3 — Monitoramento de tendências
-- [ ] Cadastro de fontes (Google Trends, RSS, sites escolhidos) globais e por site.
-- [ ] Worker/cron de coleta + detecção de "fora da curva".
-- [ ] Fila de pautas → dispara pipeline de IA automaticamente.
+## Fase 3 — Monitoramento de tendências ✅
+- [x] Cadastro de fontes (Google Trends, RSS, sites) globais e por site (`/dashboard/sources`).
+- [x] Coleta + detecção de "fora da curva" (scoring por tráfego/posição); dedup. `src/lib/trends/`.
+- [x] Fila de pautas (`/dashboard/trends`) ordenada por relevância; ações usar/descartar.
+- [x] Trigger de coleta: manual (admin) + rota `POST /api/trends/collect` para n8n/cron (CRON_SECRET).
+- [~] **Disparo automático do pipeline a partir da pauta**: hoje é semi-automático (pauta → "Gerar conteúdo").
+      Encadear pauta→pipeline 100% no automático fica para a fase de automação (n8n) / agendamento real.
 
 ## Fase 4 — Analytics
 - [ ] Integração de analytics por site (Umami/Plausible ou GA4).
