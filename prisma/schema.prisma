@@ -1,0 +1,179 @@
+// HubDeMidia — schema do banco (PostgreSQL)
+// Documentação da arquitetura: ../docs/ARQUITETURA.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Usuários e acesso (RBAC) ───────────────────────────────
+
+enum Role {
+  ADMIN // acesso total: todos os sites, usuários e configurações
+  EDITOR // acesso apenas aos sites permitidos (via UserSiteAccess)
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String? // null quando login só via OAuth (futuro)
+  role         Role     @default(EDITOR)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  siteAccess UserSiteAccess[]
+  aiKeys     AiKey[]
+  accounts   Account[]
+  sessions   Session[]
+}
+
+// Quais sites cada EDITOR pode acessar. ADMIN ignora esta tabela (vê tudo).
+model UserSiteAccess {
+  id     String @id @default(cuid())
+  userId String
+  siteId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, siteId])
+}
+
+// ─────────────────────────────── Sites (multi-tenant) ───────────────────────────────
+
+enum SiteStatus {
+  DRAFT // em construção
+  LIVE // no ar
+  PAUSED // pausado
+}
+
+model Site {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique // subdomínio/identificador interno
+  domain      String?    @unique // domínio customizado (ex.: meusite.com)
+  description String?
+  status      SiteStatus @default(DRAFT)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  posts   Post[]
+  sources Source[]
+  access  UserSiteAccess[]
+}
+
+// ─────────────────────────────── Conteúdo ───────────────────────────────
+
+enum PostStatus {
+  DRAFT // rascunho (gerado por IA ou manual)
+  REVIEW // aguardando revisão humana
+  PUBLISHED // publicado
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  siteId      String
+  title       String
+  slug        String
+  content     String // corpo (markdown/html)
+  excerpt     String?
+  imageUrl    String? // imagem gerada pelo agente Imagem
+  status      PostStatus @default(DRAFT)
+  seoScore    Int? // score do agente SEO (0-100)
+  sourceUrl   String? // notícia de origem, quando aplicável
+  createdByAi Boolean    @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, slug])
+  @@index([siteId, status])
+}
+
+// ─────────────────────────────── Monitoramento de tendências ───────────────────────────────
+
+enum SourceType {
+  GOOGLE_TRENDS
+  RSS
+  WEBSITE
+}
+
+// Fonte global (siteId null) ou específica de um site.
+model Source {
+  id        String     @id @default(cuid())
+  siteId    String?
+  type      SourceType
+  url       String
+  label     String?
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+
+  site Site? @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────── IA (BYOK — chaves do usuário) ───────────────────────────────
+
+enum AiProvider {
+  CLAUDE
+  OPENAI
+  GROK
+}
+
+// Chave de API do provedor, CRIPTOGRAFADA (ver src/lib/crypto.ts). Nunca em texto puro.
+model AiKey {
+  id        String     @id @default(cuid())
+  userId    String
+  provider  AiProvider
+  encrypted String // ciphertext da chave de API
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+}
+
+// ─────────────────────────────── Auth.js (NextAuth) — modelos padrão ───────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
