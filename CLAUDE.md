@@ -4,13 +4,17 @@
 > a cada sessão. Mantenha-o atualizado conforme decisões forem tomadas.
 > Histórico de decisões e progresso fica em [docs/MEMORIA.md](docs/MEMORIA.md).
 
-## ⚠️ Trabalho em paralelo (dois agentes)
+## ⚠️ Trabalho em paralelo (três agentes)
 
-Dois agentes atuam nesta pasta ao mesmo tempo e **não se enxergam em tempo real**.
+Três agentes atuam nesta pasta ao mesmo tempo e **não se enxergam em tempo real**.
 **Antes de editar qualquer arquivo**, consulte [docs/COORDENACAO.md](docs/COORDENACAO.md),
 reivindique os arquivos que vai tocar e atualize o quadro ao terminar. Papéis:
 - **Implementador** — escreve features novas (Roadmap).
 - **QA / Correção** — após cada implementação, busca erros e corrige; não cria features novas.
+- **Front-end / UI** — após as telas básicas existirem, evolui a camada visual (design system,
+  componentes presentacionais, responsividade, UX). Toca só `src/components/**`, `*.tsx` de render
+  e `globals.css`; **não** mexe em `actions.ts`/`src/lib/**`/regra de negócio.
+  Direção visual: SaaS limpo e neutro (estilo Linear/Vercel).
 
 ## O que é
 

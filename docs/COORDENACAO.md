@@ -1,6 +1,6 @@
 # Coordenação entre Agentes
 
-> **Por que este arquivo existe:** dois agentes de IA trabalham nesta pasta ao mesmo tempo.
+> **Por que este arquivo existe:** três agentes de IA trabalham nesta pasta ao mesmo tempo.
 > Eles **não se enxergam em tempo real** — só sabem o que o outro fez ao ler este arquivo e o `git log`.
 > Este é o "quadro de tarefas" compartilhado. **Leia antes de começar qualquer tarefa e atualize ao terminar.**
 
@@ -10,8 +10,19 @@
 |--------|-------|------------------|
 | **Implementador** | Construção | Escreve features novas, cria/edita código, faz as implementações do Roadmap. |
 | **QA / Correção** | Revisão e conserto | Após cada implementação, busca erros (build, types, lint, lógica, runtime) e **corrige**. Não inventa features novas. |
+| **Front-end / UI** | Evolução visual | Após o Implementador entregar telas básicas (e em conjunto com o QA), evolui a camada visual: design system, componentes presentacionais, responsividade, acessibilidade, UX e estados de UI. **Não altera regra de negócio.** |
 
-## Protocolo (os dois agentes seguem)
+### Fronteira de arquivos (evita colisão entre os 3 agentes)
+
+| Agente | **Mexe em** | **Não toca** |
+|--------|-------------|--------------|
+| Implementador / QA | `**/actions.ts` (server actions), `src/lib/**` (auth, access, db, tenant, ai, crypto, storage), `prisma/**`, rotas de API | — |
+| Front-end / UI | `src/components/**` (presentacional), `src/app/**/*.tsx` (markup/JSX de render), `src/app/globals.css`, layout/estilo | `**/actions.ts`, `src/lib/**`, `prisma/**`, regras de RBAC |
+
+> Quando uma tela exige tocar lógica **e** visual no mesmo arquivo, combinar no quadro quem entra primeiro.
+> **Direção visual definida:** SaaS limpo e neutro (estilo Linear/Vercel — claro, muito espaço em branco, cinza/preto, tipografia forte).
+
+## Protocolo (os três agentes seguem)
 
 1. **Antes de editar:** ler este arquivo + rodar `git status` / `git log --oneline -5`.
 2. **Reivindicar:** anotar em "Em andamento" os arquivos que você vai tocar, com hora. Não mexer em arquivo que o outro reivindicou.
@@ -22,6 +33,7 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
+- [Front-end/UI] **Registrado no time, sem lock ativo.** Aguardando o QA liberar `sites/`,`posts/`,`publish/` e o Implementador liberar `dashboard/layout.tsx` para iniciar o design system + refatoração visual. Vou tocar só camada presentacional (`src/components/**`, `*.tsx` de render, `globals.css`); não mexo em `actions.ts`/`src/lib/**`.
 - [QA] Revisão da Fase 1 (somente leitura + correções pontuais) — desde 01:45. Implementador: evitar editar `sites/`, `posts/`, `publish/`, `proxy.ts`, `validation.ts`, `access.ts` até liberar.
 - [Implementador] **Fase 2 (IA nativa BYOK)** — desde 01:46. Replanejada para NÃO colidir com o lock do QA:
   - `src/app/dashboard/settings/**` (novo: config de chaves BYOK)
