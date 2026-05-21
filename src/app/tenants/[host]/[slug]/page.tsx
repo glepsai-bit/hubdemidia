@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { resolveSiteByHost } from "@/lib/tenant";
+import { recordView } from "@/lib/analytics";
 
 type Params = Promise<{ host: string; slug: string }>;
 
@@ -31,6 +32,8 @@ export default async function TenantPost({ params }: { params: Params }) {
   const data = await load(params);
   if (!data) notFound();
   const { site, post } = data;
+
+  await recordView({ siteId: site.id, postId: post.id, path: `/${post.slug}` }); // analytics
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">

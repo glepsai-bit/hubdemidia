@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { resolveSiteByHost } from "@/lib/tenant";
+import { recordView } from "@/lib/analytics";
 
 export default async function TenantHome({
   params,
@@ -12,6 +13,8 @@ export default async function TenantHome({
   const { host } = await params;
   const site = await resolveSiteByHost(decodeURIComponent(host));
   if (!site) notFound();
+
+  await recordView({ siteId: site.id, path: "/" }); // analytics first-party
 
   const posts = await db.post.findMany({
     where: { siteId: site.id, status: "PUBLISHED" },
