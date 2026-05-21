@@ -33,7 +33,7 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- [Front-end/UI] **Registrado no time, sem lock ativo.** Aguardando o QA liberar `sites/`,`posts/`,`publish/` e o Implementador liberar `dashboard/layout.tsx` para iniciar o design system + refatoração visual. Vou tocar só camada presentacional (`src/components/**`, `*.tsx` de render, `globals.css`); não mexo em `actions.ts`/`src/lib/**`.
+- [Front-end/UI] **LOCK LIBERADO ~02:55.** `GenerateForm.tsx` concluído (typecheck+lint limpos). Sem lock ativo.
 - [QA] Fase 1 ✅ e Fase 2 ✅ aprovadas. **LOCK LIBERADO ~02:45.** Hardening dos itens 4/5 da Fase 2 aplicado
   em `generate/actions.ts` (try/catch cobre imagem+create; P2002 → mensagem amigável; redirect fora do try). Tudo liberado.
 - [Implementador] **Fase 2 (IA nativa BYOK) — LOCK LIBERADO ~02:15** (commit `321fd9b`).
@@ -42,7 +42,7 @@
   e há 4 telas básicas novas (settings, generate + 2 forms) prontas para evolução visual.
 - [Implementador] **Fase 2 — fechamento (pesquisa real de palavras-chave) — LOCK LIBERADO ~02:05** (commit `cfa70ce`).
   `src/lib/keywords/**`, `src/lib/ai/pipeline.ts`, `src/app/dashboard/generate/actions.ts` **liberados**.
-  **Front-end:** pendência cosmética em `GenerateForm.tsx` — renomear o campo "Palavras-chave" para
+  **Front-end:** ✅ pendência cosmética em `GenerateForm.tsx` resolvida — campo renomeado para
   "Palavras-chave / sementes (opcional — a IA pesquisa o resto)".
 
 ## Fila de revisão (QA)
@@ -88,7 +88,8 @@
      `try/catch` (redirect fora). Falha → mensagem amigável, sem 500 cru.
   5. ✅ **CORRIGIDO pelo QA:** colisão de slug (P2002) tratada com mensagem amigável no mesmo `try/catch`.
   6. ⚠️ (não-bloqueante) `storage.ts` grava em `/public/uploads` — ok no VPS; em FS read-only de prod falharia. Trocar por MinIO ao escalar (já no Roadmap).
-  7. ⚠️ (não-bloqueante, **Front-end**) Provider de imagem é sempre OpenAI: gerar com texto=Claude + imagem exige **também** chave OpenAI; senão o passo de imagem falha (com erro amigável). Documentar na tela `GenerateForm.tsx`.
+  7. ✅ **RESOLVIDO pelo Front-end:** `GenerateForm.tsx` agora documenta sob o checkbox que a imagem é sempre
+     gerada pela OpenAI (mesmo com texto em outro provedor) e exige chave OpenAI em Configurações.
 
 ## Fila (próximas tarefas, sem dono ainda)
 
@@ -103,3 +104,5 @@
   via pipeline (Leitor→SEO→Imagem) (commit `321fd9b`). Build + typecheck + lint + smoke test (cripto) OK.
 - [Implementador] **Fase 2 (fechamento)**: pesquisa real de palavras-chave (Google Suggest + fallback)
   alimentando o agente SEO (commit `cfa70ce`). Fase 2 **100% completa**. Build + typecheck + lint + smoke test OK.
+- [Front-end/UI] Ajustes de texto/UX em `GenerateForm.tsx`: campo de palavras-chave renomeado p/ "sementes
+  (opcional)" com dica, e nota de que a imagem sempre usa OpenAI (itens 5 e 7 do handoff). typecheck + lint OK.

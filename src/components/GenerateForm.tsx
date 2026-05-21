@@ -63,19 +63,28 @@ export function GenerateForm({ sites }: { sites: SiteOption[] }) {
 
       <label className="block">
         <span className="mb-1 block text-sm font-medium text-gray-700">
-          Palavras-chave (separadas por vírgula)
+          Palavras-chave / sementes (opcional — a IA pesquisa o resto)
         </span>
         <input
           name="keywords"
           placeholder="palavra1, palavra2, palavra3"
           className="w-full rounded-lg border border-gray-300 px-3 py-2"
         />
+        <span className="mt-1 block text-xs text-gray-500">
+          Separe por vírgula. Deixe em branco e a IA descobre as palavras-chave a partir do texto.
+        </span>
       </label>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="withImage" />
-        Gerar imagem (requer chave da OpenAI configurada)
-      </label>
+      <div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="withImage" />
+          Gerar imagem da notícia
+        </label>
+        <span className="mt-1 block text-xs text-gray-500">
+          A imagem é sempre gerada pela OpenAI, mesmo que o texto use outro provedor. Requer uma chave
+          da OpenAI configurada em Configurações; sem ela, o texto é gerado e só o passo de imagem falha.
+        </span>
+      </div>
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
