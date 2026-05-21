@@ -22,6 +22,12 @@ export default async function DashboardLayout({
             <Link href="/dashboard/sites" className="text-sm text-gray-600 hover:text-gray-900">
               Sites
             </Link>
+            <Link href="/dashboard/trends" className="text-sm text-gray-600 hover:text-gray-900">
+              Tendências
+            </Link>
+            <Link href="/dashboard/sources" className="text-sm text-gray-600 hover:text-gray-900">
+              Fontes
+            </Link>
             <Link href="/dashboard/generate" className="text-sm text-gray-600 hover:text-gray-900">
               Gerar com IA
             </Link>

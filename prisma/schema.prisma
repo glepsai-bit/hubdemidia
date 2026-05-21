@@ -64,6 +64,7 @@ model Site {
 
   posts   Post[]
   sources Source[]
+  trends  Trend[]
   access  UserSiteAccess[]
 }
 
@@ -115,7 +116,32 @@ model Source {
   active    Boolean    @default(true)
   createdAt DateTime   @default(now())
 
-  site Site? @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site   Site?   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  trends Trend[]
+}
+
+enum TrendStatus {
+  NEW // pauta nova, captada
+  USED // já virou conteúdo
+  DISMISSED // descartada pelo usuário
+}
+
+// Pauta captada pelo monitor de tendências (Google Trends / RSS / sites). Alimenta o pipeline de IA.
+model Trend {
+  id        String      @id @default(cuid())
+  siteId    String? // null = global
+  sourceId  String? // de qual Source veio (se aplicável)
+  title     String
+  url       String?
+  type      SourceType
+  score     Int         @default(0) // sinal "fora da curva" (quanto maior, mais quente)
+  status    TrendStatus @default(NEW)
+  createdAt DateTime    @default(now())
+
+  site   Site?   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  source Source? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@index([siteId, status, score])
 }
 
 // ─────────────────────────────── IA (BYOK — chaves do usuário) ───────────────────────────────

@@ -36,6 +36,16 @@ export const postSchema = z.object({
 
 export type PostInput = z.infer<typeof postSchema>;
 
+export const sourceSchema = z.object({
+  type: z.enum(["GOOGLE_TRENDS", "RSS", "WEBSITE"]),
+  url: z.string().url("Informe uma URL válida (feed RSS / Google Trends RSS / site)."),
+  label: z.string().max(120).optional().or(z.literal("")),
+  // siteId vazio = fonte global (admin).
+  siteId: z.string().optional().or(z.literal("")),
+});
+
+export type SourceInput = z.infer<typeof sourceSchema>;
+
 /** Gera um slug a partir de um texto livre. */
 export function slugify(text: string): string {
   return text
