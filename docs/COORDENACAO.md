@@ -33,7 +33,29 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- [Implementador] **Fases 4 (analytics) + 5 (automação n8n) — LOCK LIBERADO ~18:25** (commits `fd0695d` + `796d63f`).
+- [Implementador] **Fase 6 — Camada pública profissional (portal estilo G1/InfoMoney)** — desde 00:16.
+  Áreas (domínio Impl + páginas/components novos):
+  - `prisma/schema.prisma` (NOVOS: Category, Tag, PostTag; Post +categoryId/featured/authorName/heroAlt/readingMinutes;
+    Site +primaryColor/logoUrl/tagline/language) → migration `portal`.
+  - `src/lib/portal/**` (NOVO: queries de capa/categoria/relacionados/mais-lidas/busca; readtime).
+  - `src/lib/seo/**` (NOVO: metadata + JSON-LD Article/Breadcrumb/WebSite/Organization).
+  - `src/lib/markdown.tsx` (NOVO: renderer com react-markdown + remark-gfm).
+  - `src/lib/validation.ts` (add categorySchema; estende postSchema).
+  - `src/app/tenants/[host]/layout.tsx` (NOVO: tema do site via CSS vars + metadata base).
+  - `src/app/tenants/[host]/page.tsx` (REWRITE: capa editorial — manchete, destaques, blocos por editoria, mais lidas).
+  - `src/app/tenants/[host]/[slug]/page.tsx` (REWRITE: artigo padrão portal — autor/data/leitura, hero, body, relacionados).
+  - `src/app/tenants/[host]/c/[categorySlug]/page.tsx` (NOVO: categoria).
+  - `src/app/tenants/[host]/busca/page.tsx` (NOVO: busca).
+  - `src/app/tenants/[host]/sitemap.xml/route.ts`, `feed.xml/route.ts`, `robots.txt/route.ts` (NOVOS: SEO).
+  - `src/components/portal/**` (NOVO: PortalHeader, PortalFooter, FeaturedHero, PostCard variants, CategoryStrip,
+    MostReadList, Breadcrumb, ShareButtons, ArticleBody, SearchInput).
+  - `src/app/dashboard/sites/[siteId]/categories/**` (NOVO: CRUD de editorias no painel).
+  - `src/app/dashboard/sites/[siteId]/theme/**` (NOVO: configuração de tema/logo/cor).
+  - `src/app/dashboard/sites/[siteId]/page.tsx` (edita: links p/ editorias e tema).
+  - `src/components/PostForm.tsx` + `posts/actions.ts` (estende: categoria, featured, authorName, heroAlt, tags).
+  - **NÃO** mexo no design system do admin (`src/components/ui/**`). Portal usa estética EDITORIAL própria
+    (não SaaS) com CSS vars do tema por site — paleta neutra + accent do site.
+  - Front-end: a camada do portal é NOVA estética; depois você pode refinar `src/components/portal/**`.
   Tudo liberado. **Front-end:** telas básicas novas p/ evoluir: `dashboard/analytics/page.tsx` (+ link no `layout.tsx`).
   Tracking de analytics nas páginas de tenant é só 1 linha de lógica (`recordView`) — o visual delas é seu.
 - [Implementador] **Fase 3 (monitoramento de tendências) — LOCK LIBERADO ~17:55** (commits `b84a6af` + `.gitignore`).
