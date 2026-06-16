@@ -33,29 +33,17 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- [Implementador] **Fase 6 — Camada pública profissional (portal estilo G1/InfoMoney)** — desde 00:16.
-  Áreas (domínio Impl + páginas/components novos):
-  - `prisma/schema.prisma` (NOVOS: Category, Tag, PostTag; Post +categoryId/featured/authorName/heroAlt/readingMinutes;
-    Site +primaryColor/logoUrl/tagline/language) → migration `portal`.
-  - `src/lib/portal/**` (NOVO: queries de capa/categoria/relacionados/mais-lidas/busca; readtime).
-  - `src/lib/seo/**` (NOVO: metadata + JSON-LD Article/Breadcrumb/WebSite/Organization).
-  - `src/lib/markdown.tsx` (NOVO: renderer com react-markdown + remark-gfm).
-  - `src/lib/validation.ts` (add categorySchema; estende postSchema).
-  - `src/app/tenants/[host]/layout.tsx` (NOVO: tema do site via CSS vars + metadata base).
-  - `src/app/tenants/[host]/page.tsx` (REWRITE: capa editorial — manchete, destaques, blocos por editoria, mais lidas).
-  - `src/app/tenants/[host]/[slug]/page.tsx` (REWRITE: artigo padrão portal — autor/data/leitura, hero, body, relacionados).
-  - `src/app/tenants/[host]/c/[categorySlug]/page.tsx` (NOVO: categoria).
-  - `src/app/tenants/[host]/busca/page.tsx` (NOVO: busca).
-  - `src/app/tenants/[host]/sitemap.xml/route.ts`, `feed.xml/route.ts`, `robots.txt/route.ts` (NOVOS: SEO).
-  - `src/components/portal/**` (NOVO: PortalHeader, PortalFooter, FeaturedHero, PostCard variants, CategoryStrip,
-    MostReadList, Breadcrumb, ShareButtons, ArticleBody, SearchInput).
-  - `src/app/dashboard/sites/[siteId]/categories/**` (NOVO: CRUD de editorias no painel).
-  - `src/app/dashboard/sites/[siteId]/theme/**` (NOVO: configuração de tema/logo/cor).
-  - `src/app/dashboard/sites/[siteId]/page.tsx` (edita: links p/ editorias e tema).
-  - `src/components/PostForm.tsx` + `posts/actions.ts` (estende: categoria, featured, authorName, heroAlt, tags).
-  - **NÃO** mexo no design system do admin (`src/components/ui/**`). Portal usa estética EDITORIAL própria
-    (não SaaS) com CSS vars do tema por site — paleta neutra + accent do site.
-  - Front-end: a camada do portal é NOVA estética; depois você pode refinar `src/components/portal/**`.
+- [Implementador] **Fase 6 — Camada pública profissional — LOCK LIBERADO** (commit `fa030d5`).
+  Portal editorial completo: schema +Category/Tag/PostTag, queries de capa/categoria/relacionados/mais-lidas/busca,
+  SEO (metadata + JSON-LD NewsArticle/Breadcrumb/WebSite) + sitemap.xml/feed.xml/robots.txt, 13 componentes
+  editoriais (Header/Footer/Hero/Cards/Strip/MostRead/Breadcrumb/Share/Article/Related), painel com CRUD de
+  editorias + tema do site + PostForm estendido (categoria/featured/autor/heroAlt/tags). Review adversarial
+  multi-agente confirmou 48 achados; **17 corrigidos imediatamente** (1 blocker + 6 high + 10 med — ver lista no commit).
+  - **Para QA:** revisar `src/app/tenants/**`, `src/lib/portal/**`, `src/lib/seo/**`, `src/components/portal/**`,
+    `dashboard/sites/[siteId]/categories|theme/actions.ts` e hardenings multi-tenant em `posts/actions.ts`.
+  - **Para Front-end:** componentes do portal são estética EDITORIAL própria (NÃO usar `@/components/ui`).
+    Achados não-bloqueantes do review pra refinar: dek opcional no hero, overlay no PostCardGrid,
+    busca com cor do tema, paginação numerada, escala tipográfica modular — ficam por sua conta em `src/components/portal/**`.
   Tudo liberado. **Front-end:** telas básicas novas p/ evoluir: `dashboard/analytics/page.tsx` (+ link no `layout.tsx`).
   Tracking de analytics nas páginas de tenant é só 1 linha de lógica (`recordView`) — o visual delas é seu.
 - [Implementador] **Fase 3 (monitoramento de tendências) — LOCK LIBERADO ~17:55** (commits `b84a6af` + `.gitignore`).
@@ -84,7 +72,22 @@
 - ✅ **[Fase 1 — commit `927b9ef`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 - ✅ **[Fase 2 — commits `321fd9b` + `cfa70ce`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
 - ✅ **[Fase 4 — commit `fd0695d`] REVISADA E APROVADA pelo QA** (ver "Erros encontrados / correções"). 0 bugs bloqueantes.
-- [Fase 4 — commit `fd0695d`] Revisar analytics first-party. Atenção:
+- [Fase 6 — commit `fa030d5`] Revisar portal editorial. 17 achados já corrigidos no commit; QA atenção:
+  - **Multi-tenant**: hardening em `posts/actions.ts` (assertPostBelongsToSite + revalidateTenantPublic) e
+    `categories/actions.ts` (assertCategoryBelongsToSite em delete; ownership check em update).
+  - **Stretched-link** em `FeaturedHero` e `PostCardGrid/Horizontal/Compact` (CategoryBadge fora do Link
+    com `relative z-10`; Link do título com `after:absolute after:inset-0`). Confirmar 0 nested anchors.
+  - **SEO**: NewsArticle.image como ImageObject (1200x630), og:image na home com dimensões, canonical
+    paginada na categoria. Conferir com Rich Results Test (Google).
+  - **Acessibilidade**: h1 sr-only na home; breadcrumb contraste neutral-500; aria-current/aria-label nos
+    navs; safeImageUrl bloqueia javascript:/data:; ShareButtons com "abre em nova janela".
+  - **WCAG contrast em CategoryBadge**: usa `bestTextColor` por luminância (preto/branco automático). Validar
+    com cores extremas (#ffffff, #000000).
+  - **Revalidação**: ao publicar/despublicar/editar/excluir post, revalidatePath de `/tenants/[host]`
+    (layout) + sitemap/feed. Smoke: editar post no painel, ver capa atualizar em < 1s.
+  - **Performance** (não-bloqueantes, low/medium): N+1 em categoryBlocks (mitigado por revalidate=60),
+    getMostRead pega take*2 (poderia usar notIn no groupBy), searchPosts sem FTS (ok p/ MVP).
+  - **Demo**: `npx tsx prisma/seed-demo.ts` cria 2 sites, 8 editorias, 14 matérias com tema/destaques.
   - `recordView` roda no render de Server Component (tenant pages) — efeito colateral em GET; aceitável em rota
     dinâmica, ignora bots por UA e nunca lança. Validar se não conta prefetch/duplo-render indevido.
   - `getSiteStats` usa `$queryRaw` (date_trunc) p/ séries por dia — conferir binding seguro (usa template tag, ok).
@@ -191,6 +194,11 @@
   **MVP do Roadmap (Fases 0–5) completo** — pronto para a revisão final do QA.
 - [Front-end/UI] Ajustes de texto/UX em `GenerateForm.tsx`: campo de palavras-chave renomeado p/ "sementes
   (opcional)" com dica, e nota de que a imagem sempre usa OpenAI (itens 5 e 7 do handoff). typecheck + lint OK.
+- [Implementador] **Fase 6**: camada pública profissional — portal editorial estilo G1/InfoMoney com
+  capa/categoria/matéria/busca, SEO completo (sitemap/feed/JSON-LD/metadata), tema por site (CSS var),
+  CRUD de editorias e tema no painel, multi-tenant hardening, WCAG/contraste, stretched-link (zero nested anchors)
+  (commit `fa030d5`). Review adversarial multi-agente (5 dimensões, 48 achados): 17 corrigidos no commit.
+  Build + typecheck + lint + smoke OK.
 - [Front-end/UI] **Evolução visual completa do painel (design system).** Estilo SaaS limpo/neutro (Linear/Vercel):
   - **Novo design system** em `src/components/ui/**`: `cn`, `Button`/`buttonClass`, `Field`/`Input`/`Textarea`/`Select`,
     `Card`, `Badge`, `PageHeader`, `EmptyState`, `Stat`, `TextLink`/`linkClass`, `FormError`/`FormSuccess`.

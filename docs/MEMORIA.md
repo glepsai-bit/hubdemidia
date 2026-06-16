@@ -90,4 +90,38 @@
 - **Decisões**: analytics próprio em vez de serviço externo (custo/privacidade); cron real fica a cargo do n8n (Schedule);
   geração via automação cria DRAFT por padrão (autoPublish opcional) para controlar custo de IA e revisão.
 
+## 2026-06-16 — Fase 6 (camada pública profissional — portal editorial)
+- **Objetivo do usuário**: portal de qualidade G1/InfoMoney/GE — "não quero que o resultado seja porcaria".
+- Schema: `Category`, `Tag`, `PostTag`; Post +categoryId/featured/authorName/heroAlt/readingMinutes;
+  Site +primaryColor/logoUrl/tagline/language. Migration `portal`.
+- **`src/lib/portal/`**: queries (capa/categoria/relacionados/mais-lidas/busca), readtime (200ppm),
+  contrast (luminância WCAG -> bestTextColor preto/branco), safe-url (bloqueia javascript:/data: em img).
+- **`src/lib/seo/`**: metadata (per-page title/desc/OG/Twitter/canonical) + JSON-LD
+  NewsArticle/BreadcrumbList/WebSite/NewsMediaOrganization. ImageObject com 1200x630.
+- **`src/lib/markdown.tsx`**: react-markdown + remark-gfm com sanitização de href/src.
+- **`src/components/portal/`** (13 componentes editoriais): Header (client component p/ aria-current),
+  Footer, FeaturedHero (stretched-link com CategoryBadge fora do Link), PostCard 3 variantes,
+  CategoryStrip, MostReadList, Breadcrumb, ShareButtons, ArticleBody, RelatedPosts, SectionTitle, PostMeta.
+- **`src/app/tenants/[host]/`**: layout (tema via CSS var --portal-primary + JSON-LD raiz + lang),
+  capa editorial (h1 sr-only), matéria padrão portal, categoria com paginação rel=prev/next + canonical,
+  busca, sitemap.xml/feed.xml/robots.txt por tenant. `revalidate=60`.
+- **Painel**: CRUD de editorias + tema do site (ThemeForm), PostForm estendido com categoria/featured/autor/tags,
+  toggleFeatured action. Site detail com link "Ver site público" + Editorias + Tema + Analytics.
+- **Demo seed** (`prisma/seed-demo.ts`): 2 sites (Tech Hoje + Esporte Já) com tema (cores #0ea5e9 e #c8102e),
+  8 editorias, 14 matérias realistas com autor/categoria/destaques/data simulada.
+- **Review adversarial via Workflow** (5 dimensões, 72 subagents, 48 achados confirmados):
+  - **17 correções aplicadas no commit**: 1 blocker (deleteCategory cross-tenant) + 6 high
+    (multi-tenant publishPost/unpublishPost/deletePost/updatePost ownership; breadcrumb WCAG contrast;
+    h1 ausente na home; NewsArticle.image string -> ImageObject; og:image na home; revalidatePath tenant;
+    nested anchors no Hero/PostCard) + 10 medium (aria-current, aria-label paginação/share, safe-url,
+    contrast no Badge, feed RSS `<image>`, canonical paginada, etc.).
+  - **Restantes (não-bloqueantes)**: refinos visuais (dek no hero, overlay em PostCardGrid, busca temática,
+    paginação numerada, escala tipográfica modular) — handoff para Front-end. Performance (N+1 mitigado por
+    revalidate=60, getMostRead take*2, searchPosts FTS) — handoff para QA (não-bloqueantes em MVP).
+- **Commit `fa030d5`** (Fase 6). Build + typecheck + lint OK; 20 rotas. Smoke test confirma:
+  capa com h1, JSON-LD NewsArticle com ImageObject, sitemap/feed/robots respondendo, canonical paginada,
+  zero nested anchors (43 anchors no DOM, 0 aninhados).
+- **Decisão de escopo**: tema multi-tenant + temas configuráveis (caminho A da discussão estratégica),
+  não criação de código por site. Próximo passo (Fase 7?) é deploy em VPS com Caddy/HTTPS + DNS curinga.
+
 <!-- Adicione novas entradas abaixo, mais recentes no topo de cada data. -->

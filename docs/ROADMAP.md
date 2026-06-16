@@ -51,5 +51,22 @@ Objetivo: **pôr no ar o mais rápido possível** com bom custo-benefício. MVP 
 - [ ] API por site para postar/publicar (Instagram etc.).
 - [ ] Agendamento e publicação multi-rede.
 
+## Fase 6 — Camada pública profissional (portal estilo G1/InfoMoney) ✅
+- [x] Modelo editorial: `Category`, `Tag`, `PostTag`; Post recebe `categoryId`, `featured`, `authorName`,
+      `heroAlt`, `readingMinutes`; Site recebe `primaryColor`, `logoUrl`, `tagline`, `language`. Migration `portal`.
+- [x] Capa editorial (manchete + 3 destaques, mais lidas, blocos por editoria, últimas) com cache ISR (60s).
+- [x] Página de matéria padrão portal: breadcrumb, autor/data/leitura, hero, body markdown, share, relacionados.
+- [x] Página de editoria com paginação + página de busca textual.
+- [x] **SEO**: per-page `generateMetadata` (title/desc/OG/Twitter/canonical), JSON-LD NewsArticle (ImageObject),
+      BreadcrumbList, WebSite (SearchAction), NewsMediaOrganization; **sitemap.xml**, **feed.xml**, **robots.txt** por tenant.
+- [x] **Tema por site**: `primaryColor` aplicada via CSS var `--portal-primary`; helper `bestTextColor` (luminância WCAG).
+- [x] **Painel**: CRUD de editorias (`/dashboard/sites/[siteId]/categories`), tema do site (`/theme`),
+      PostForm estendido (categoria/featured/autor/heroAlt/tags), `toggleFeatured`.
+- [x] **Hardenings**: multi-tenant ownership em todas as ações de post/categoria;
+      revalidatePath das rotas tenant ao publicar/editar/excluir; `safeImageUrl` bloqueia `javascript:`/`data:`.
+- [x] **A11y**: h1 sr-only na home; breadcrumb WCAG; aria-current/aria-label nos navs; share com "abre em nova janela";
+      `bestTextColor` no badge; stretched-link (zero nested anchors).
+- [~] Refinos visuais opcionais (Front-end): dek no hero, overlay no PostCardGrid, busca temática, paginação numerada.
+
 ---
 **Regra de priorização:** nada da V1 depende de redes sociais. Entregar Fases 0–1 já dá um produto utilizável.
