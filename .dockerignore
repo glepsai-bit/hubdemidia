@@ -1,0 +1,36 @@
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# Dependências e build (regerados no Dockerfile)
+node_modules
+.next
+out
+dist
+build
+coverage
+
+# Git e CI
+.git
+.github
+.gitignore
+
+# Tooling local
+.vscode
+.idea
+.DS_Store
+*.log
+
+# Conteúdo gerado em dev / smoke tests
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Docs e infra que não precisam estar na imagem
+docs
+Dockerfile
+docker-compose*.yml
+.dockerignore
+.claude
+README.md
+*.md

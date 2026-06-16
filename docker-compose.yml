@@ -1,0 +1,73 @@
+# HubDeMidia — compose de produção (Easypanel / VPS).
+#
+# • app  → Next.js standalone (porta 3000 INTERNA — Easypanel/Traefik publica).
+# • db   → PostgreSQL 16 com volume persistente.
+# • Volume "uploads" persiste as imagens geradas pela IA (servidas em /uploads).
+#
+# Em Easypanel: importe este compose, deixe `db` como serviço interno (sem
+# domínio público) e configure o domínio do `app` com:
+#   - painel.SEUDOMINIO       (painel)
+#   - *.SEUDOMINIO            (curinga: cada site fica em SLUG.SEUDOMINIO)
+#   - + domínios próprios     (cada cliente adiciona via Easypanel "Domains")
+#
+# As variáveis sensíveis (AUTH_SECRET, ENCRYPTION_KEY, CRON_SECRET, POSTGRES_PASSWORD)
+# DEVEM ser definidas no painel do Easypanel, NUNCA versionadas.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-hubdemidia}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB:-hubdemidia}"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hubdemidia} -d ${POSTGRES_DB:-hubdemidia}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hubdemidia:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Banco — o app fala com o serviço `db` por nome dentro da rede compose.
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-hubdemidia}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-hubdemidia}?schema=public"
+
+      # Auth.js
+      AUTH_SECRET: "${AUTH_SECRET:?defina AUTH_SECRET}"
+      AUTH_TRUST_HOST: "true" # importante atrás de proxy/Traefik
+
+      # Criptografia das chaves BYOK (hex 64 chars)
+      ENCRYPTION_KEY: "${ENCRYPTION_KEY:?defina ENCRYPTION_KEY}"
+
+      # Multi-tenant — root domain do hub (ex.: hubdemidia.com.br)
+      ROOT_DOMAIN: "${ROOT_DOMAIN:?defina ROOT_DOMAIN}"
+
+      # Automação (opcional)
+      CRON_SECRET: "${CRON_SECRET:-}"
+      N8N_WEBHOOK_URL: "${N8N_WEBHOOK_URL:-}"
+      AUTOMATION_USER_EMAIL: "${AUTOMATION_USER_EMAIL:-}"
+
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      - uploads:/app/public/uploads
+    expose:
+      - "3000"
+    # Em Easypanel, NÃO publique porta — o proxy interno (Traefik) cuida.
+    # Para teste local fora do Easypanel, descomente:
+    # ports:
+    #   - "3000:3000"
+
+volumes:
+  db_data:
+  uploads:
