@@ -33,13 +33,10 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
-- [Implementador] **Fase 7 — Deploy production (Easypanel + Docker Compose)** — desde 02:03.
-  Áreas (todas NOVAS, sem colisão com painel/portal):
-  - `Dockerfile` (multi-stage Node 20 Bookworm; Next 16 standalone; prisma migrate deploy no boot).
-  - `.dockerignore`, `docker-compose.yml`, `.env.production.example`.
-  - `next.config.ts` (add `output: "standalone"` + remoteImagePatterns).
-  - `docs/DEPLOY_EASYPANEL.md` (passo a passo + DNS curinga + domínio próprio por site).
-  - Para QA/Front-end: nada de painel/portal sendo tocado — só infra/deploy.
+- [Implementador] **Fase 7 — Deploy production — LOCK LIBERADO** (commit `89d83de`).
+  Dockerfile + compose + entrypoint + docs DEPLOY_EASYPANEL. Build local OK,
+  smoke test (Postgres efêmero + container) confirmou: migrations aplicadas no boot,
+  rotas respondendo, tabelas criadas. Imagem 1.2GB (otimizável depois).
 - [Implementador] **Fase 6 — Camada pública profissional — LOCK LIBERADO** (commit `fa030d5`).
   Portal editorial completo: schema +Category/Tag/PostTag, queries de capa/categoria/relacionados/mais-lidas/busca,
   SEO (metadata + JSON-LD NewsArticle/Breadcrumb/WebSite) + sitemap.xml/feed.xml/robots.txt, 13 componentes
@@ -206,6 +203,9 @@
   CRUD de editorias e tema no painel, multi-tenant hardening, WCAG/contraste, stretched-link (zero nested anchors)
   (commit `fa030d5`). Review adversarial multi-agente (5 dimensões, 48 achados): 17 corrigidos no commit.
   Build + typecheck + lint + smoke OK.
+- [Implementador] **Fase 7**: deploy production — Dockerfile multi-stage + docker-compose + entrypoint
+  com `prisma migrate deploy` + `docs/DEPLOY_EASYPANEL.md` (DNS curinga + domínio próprio por site)
+  (commit `89d83de`). Build + smoke test (container real com Postgres) OK.
 - [Front-end/UI] **Evolução visual completa do painel (design system).** Estilo SaaS limpo/neutro (Linear/Vercel):
   - **Novo design system** em `src/components/ui/**`: `cn`, `Button`/`buttonClass`, `Field`/`Input`/`Textarea`/`Select`,
     `Card`, `Badge`, `PageHeader`, `EmptyState`, `Stat`, `TextLink`/`linkClass`, `FormError`/`FormSuccess`.

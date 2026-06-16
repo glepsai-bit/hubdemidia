@@ -68,5 +68,15 @@ Objetivo: **pôr no ar o mais rápido possível** com bom custo-benefício. MVP 
       `bestTextColor` no badge; stretched-link (zero nested anchors).
 - [~] Refinos visuais opcionais (Front-end): dek no hero, overlay no PostCardGrid, busca temática, paginação numerada.
 
+## Fase 7 — Deploy production (Docker + Easypanel) ✅
+- [x] Dockerfile multi-stage (Node 20 Bookworm; Next 16 standalone; Prisma CLI global).
+- [x] Entrypoint roda `prisma migrate deploy` no boot (idempotente).
+- [x] `docker-compose.yml` (app + Postgres 16 + volume p/ uploads) compatível com Easypanel.
+- [x] `.env.production.example` + `.dockerignore`.
+- [x] `docs/DEPLOY_EASYPANEL.md`: passo a passo (DNS curinga `*.dominio` + cert wildcard,
+      domínio próprio por site via DNS A do cliente, env vars, seed do admin, automação n8n, troubleshooting).
+- [x] Smoke test local validado (container + Postgres efêmero): migrations OK, rotas OK, tabelas OK.
+- [~] Otimização da imagem (1.2GB → ideal ~400MB com alpine + sharp standalone) — não-bloqueante.
+
 ---
 **Regra de priorização:** nada da V1 depende de redes sociais. Entregar Fases 0–1 já dá um produto utilizável.

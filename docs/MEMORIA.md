@@ -124,4 +124,25 @@
 - **Decisão de escopo**: tema multi-tenant + temas configuráveis (caminho A da discussão estratégica),
   não criação de código por site. Próximo passo (Fase 7?) é deploy em VPS com Caddy/HTTPS + DNS curinga.
 
+## 2026-06-16 — Fase 7 (deploy production via Docker + Easypanel)
+- **Decisão**: Easypanel (em VPS Hostinger ou similar) + Docker Compose. Multi-tenant via DNS curinga (`*.dominio`)
+  e domínio próprio por site adicionado pelo cliente no DNS dele + no Easypanel.
+- **Dockerfile** multi-stage: `deps` (node 20-bookworm-slim + npm 11 + npm install) → `builder` (prisma generate + next build)
+  → `runner` (Next standalone + Prisma CLI global ~30MB + entrypoint). Imagem final 1.2GB.
+- **`docker-entrypoint.sh`** roda `prisma migrate deploy` se DATABASE_URL existir, depois `exec "$@"`.
+- **`docker-compose.yml`**: app + Postgres 16 + volumes (`db_data`, `uploads`). Sem porta publicada
+  (Easypanel/Traefik publica via labels). `AUTH_TRUST_HOST=true` p/ funcionar atrás de proxy.
+- **`next.config.ts`**: `output: "standalone"` (Next gera servidor mínimo `server.js`).
+- **`docs/DEPLOY_EASYPANEL.md`**: guia completo (DNS, env, primeiro acesso via seed do admin no container,
+  domínio próprio por site, automação n8n, troubleshooting). Commit `89d83de`.
+- **Smoke test local** (Postgres efêmero + container real, sem dev server competindo): 4 migrations aplicadas
+  no boot (init/trends/analytics/portal), tabelas Site/Post/Category/PostTag/Trend/User criadas,
+  rotas `/login`=200, `/`=307, `/dashboard`=307 (auth), `/api/auth/session`=200.
+- **Gotchas resolvidos no caminho**: (1) lockfile npm 11 vs imagem com npm 10 → instalado npm@11 no Dockerfile;
+  (2) deps opcionais Mac vs Linux desincronizam o lockfile → trocado `npm ci` por `npm install --no-audit --no-fund`;
+  (3) Prisma CLI dependia de `effect` (transitiva) → instalado `prisma@6.19.3` global no runner em vez de copiar `/node_modules/prisma`;
+  (4) yaml com `:?msg (ex.:..)` quebrava parser → todas envs entre aspas no compose.
+- **Pronto para subir hoje**: usuário só precisa configurar DNS curinga, criar projeto no Easypanel,
+  colar `.env.production.example` preenchido, deploy, rodar seed do admin.
+
 <!-- Adicione novas entradas abaixo, mais recentes no topo de cada data. -->
