@@ -33,6 +33,13 @@
 ## Em andamento (locks ativos)
 
 <!-- formato: - [Agente] arquivo/área — desde HH:MM -->
+- [Implementador] **Fase 7 — Deploy production (Easypanel + Docker Compose)** — desde 02:03.
+  Áreas (todas NOVAS, sem colisão com painel/portal):
+  - `Dockerfile` (multi-stage Node 20 Bookworm; Next 16 standalone; prisma migrate deploy no boot).
+  - `.dockerignore`, `docker-compose.yml`, `.env.production.example`.
+  - `next.config.ts` (add `output: "standalone"` + remoteImagePatterns).
+  - `docs/DEPLOY_EASYPANEL.md` (passo a passo + DNS curinga + domínio próprio por site).
+  - Para QA/Front-end: nada de painel/portal sendo tocado — só infra/deploy.
 - [Implementador] **Fase 6 — Camada pública profissional — LOCK LIBERADO** (commit `fa030d5`).
   Portal editorial completo: schema +Category/Tag/PostTag, queries de capa/categoria/relacionados/mais-lidas/busca,
   SEO (metadata + JSON-LD NewsArticle/Breadcrumb/WebSite) + sitemap.xml/feed.xml/robots.txt, 13 componentes
