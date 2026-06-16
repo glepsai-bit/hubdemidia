@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { slugify } from "@/lib/validation";
 import { persistGeneratedImage } from "@/lib/storage";
+import { computeReadingMinutes } from "@/lib/portal/readtime";
 import { runContentPipeline } from "@/lib/ai/pipeline";
 import type { ProviderName } from "@/lib/ai/types";
 
@@ -16,6 +17,8 @@ export interface GeneratePostInput {
   keywords?: string[];
   withImage?: boolean;
   autoPublish?: boolean;
+  categoryId?: string;
+  authorName?: string;
 }
 
 export interface GeneratePostResult {
@@ -46,6 +49,16 @@ export async function generatePostForSite(input: GeneratePostInput): Promise<Gen
   const slug = await uniqueSlug(input.siteId, slugify(result.title) || "rascunho");
   const status = input.autoPublish ? "PUBLISHED" : "DRAFT";
 
+  // Categoria opcional — só atribui se pertencer ao site
+  let categoryId: string | null = null;
+  if (input.categoryId) {
+    const cat = await db.category.findFirst({
+      where: { id: input.categoryId, siteId: input.siteId },
+      select: { id: true },
+    });
+    if (cat) categoryId = cat.id;
+  }
+
   const post = await db.post.create({
     data: {
       siteId: input.siteId,
@@ -54,8 +67,12 @@ export async function generatePostForSite(input: GeneratePostInput): Promise<Gen
       excerpt: result.excerpt || result.metaDescription || null,
       content: result.content,
       imageUrl,
+      heroAlt: result.title,
       seoScore: result.seoScore,
       sourceUrl: input.sourceUrl || null,
+      authorName: input.authorName ?? null,
+      categoryId,
+      readingMinutes: computeReadingMinutes(result.content),
       createdByAi: true,
       status,
       publishedAt: input.autoPublish ? new Date() : null,

@@ -36,6 +36,8 @@ export default auth((req) => {
 });
 
 export const config = {
-  // Roda em tudo, menos assets estáticos e arquivos com extensão.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  // Roda em tudo, menos assets estáticos. Mantém XML/TXT (sitemap, feed, robots) passando.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpe?g|gif|svg|webp|ico|css|js|mjs|map|woff2?|ttf|otf|eot|mp4|mp3|webm|pdf)).*)",
+  ],
 };

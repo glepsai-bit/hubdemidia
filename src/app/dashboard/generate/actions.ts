@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { canAccessSite } from "@/lib/access";
 import { slugify } from "@/lib/validation";
 import { persistGeneratedImage } from "@/lib/storage";
+import { computeReadingMinutes } from "@/lib/portal/readtime";
 import { runContentPipeline, type PipelineResult } from "@/lib/ai/pipeline";
 import type { ProviderName } from "@/lib/ai/types";
 
@@ -80,8 +81,10 @@ export async function generateDraft(
         excerpt: result.excerpt || result.metaDescription || null,
         content: result.content,
         imageUrl,
+        heroAlt: result.title,
         seoScore: result.seoScore,
         sourceUrl: sourceUrl || null,
+        readingMinutes: computeReadingMinutes(result.content),
         createdByAi: true,
         status: "DRAFT",
       },

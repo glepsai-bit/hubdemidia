@@ -62,11 +62,19 @@ model Site {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  posts     Post[]
-  sources   Source[]
-  trends    Trend[]
-  pageViews PageView[]
-  access    UserSiteAccess[]
+  // ── Tema/identidade do portal público ──
+  primaryColor String? // hex (ex.: #c8102e) — accent do portal
+  logoUrl      String?
+  tagline      String? // subtítulo curto que aparece no header do portal
+  language     String  @default("pt-BR")
+
+  posts      Post[]
+  sources    Source[]
+  trends     Trend[]
+  pageViews  PageView[]
+  access     UserSiteAccess[]
+  categories Category[]
+  tags       Tag[]
 }
 
 // ─────────────────────────────── Conteúdo ───────────────────────────────
@@ -82,9 +90,10 @@ model Post {
   siteId      String
   title       String
   slug        String
-  content     String // corpo (markdown/html)
+  content     String // corpo (markdown)
   excerpt     String?
-  imageUrl    String? // imagem gerada pelo agente Imagem
+  imageUrl    String? // hero/imagem principal
+  heroAlt     String? // alt text da imagem
   status      PostStatus @default(DRAFT)
   seoScore    Int? // score do agente SEO (0-100)
   sourceUrl   String? // notícia de origem, quando aplicável
@@ -93,11 +102,63 @@ model Post {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  // ── Editoria / curadoria do portal ──
+  categoryId     String?
+  authorName     String?
+  readingMinutes Int? // tempo estimado de leitura (computado em save)
+  featured       Boolean @default(false) // marca para destaque na capa
+
   site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  category  Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags      PostTag[]
   pageViews PageView[]
 
   @@unique([siteId, slug])
   @@index([siteId, status])
+  @@index([siteId, status, publishedAt])
+  @@index([siteId, categoryId, status])
+  @@index([siteId, featured, status])
+}
+
+// ─────────────────────────────── Editorias e tags ───────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  siteId      String
+  name        String
+  slug        String
+  description String?
+  color       String? // hex opcional (badge)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  site  Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  posts Post[]
+
+  @@unique([siteId, slug])
+  @@index([siteId, order])
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  siteId String
+  name   String
+  slug   String
+
+  site  Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  posts PostTag[]
+
+  @@unique([siteId, slug])
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
 }
 
 // ─────────────────────────────── Analytics (first-party, self-host) ───────────────────────────────

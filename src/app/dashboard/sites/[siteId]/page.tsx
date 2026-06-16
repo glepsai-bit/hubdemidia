@@ -6,7 +6,7 @@ import { SiteForm } from "@/components/SiteForm";
 import { PostForm } from "@/components/PostForm";
 import { Badge, Button, Card, EmptyState, PageHeader, TextLink } from "@/components/ui";
 import { assertSiteAccess, deleteSite, updateSite } from "../actions";
-import { createPost, deletePost, publishPost, unpublishPost } from "./posts/actions";
+import { createPost, deletePost, publishPost, toggleFeatured, unpublishPost } from "./posts/actions";
 
 export default async function SiteDetailPage({
   params,
@@ -17,11 +17,24 @@ export default async function SiteDetailPage({
   const session = await assertSiteAccess(siteId);
   const isAdmin = session.user.role === "ADMIN";
 
-  const site = await db.site.findUnique({
-    where: { id: siteId },
-    include: { posts: { orderBy: { updatedAt: "desc" } } },
-  });
+  const [site, categories] = await Promise.all([
+    db.site.findUnique({
+      where: { id: siteId },
+      include: {
+        posts: {
+          orderBy: { updatedAt: "desc" },
+          include: { category: { select: { name: true } } },
+        },
+      },
+    }),
+    db.category.findMany({
+      where: { siteId },
+      orderBy: [{ order: "asc" }, { name: "asc" }],
+      select: { id: true, name: true },
+    }),
+  ]);
   if (!site) notFound();
+  const publicOrigin = site.domain ?? `${site.slug}.${process.env.ROOT_DOMAIN}`;
 
   return (
     <div className="space-y-8">
@@ -31,8 +44,37 @@ export default async function SiteDetailPage({
         </TextLink>
         <PageHeader
           title={site.name}
-          description={`${site.domain ?? `${site.slug}.${process.env.ROOT_DOMAIN}`} · ${site.status}`}
-        />
+          description={`${publicOrigin} · ${site.status}`}
+        >
+          <a
+            href={`http://${publicOrigin}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:border-neutral-900 hover:text-neutral-900"
+          >
+            Ver site público ↗
+          </a>
+        </PageHeader>
+        <nav className="flex flex-wrap gap-2 pt-1">
+          <Link
+            href={`/dashboard/sites/${site.id}/categories`}
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:border-neutral-900"
+          >
+            Editorias ({categories.length})
+          </Link>
+          <Link
+            href={`/dashboard/sites/${site.id}/theme`}
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:border-neutral-900"
+          >
+            Tema & identidade
+          </Link>
+          <Link
+            href={`/dashboard/analytics?siteId=${site.id}`}
+            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:border-neutral-900"
+          >
+            Analytics
+          </Link>
+        </nav>
       </div>
 
       {/* Posts */}
@@ -55,11 +97,23 @@ export default async function SiteDetailPage({
                     <Badge tone={post.status === "PUBLISHED" ? "success" : "neutral"}>
                       {post.status === "PUBLISHED" ? "Publicado" : "Rascunho"}
                     </Badge>
+                    {post.featured && <Badge tone="warning">★ Destaque</Badge>}
+                    {post.category && <Badge tone="info">{post.category.name}</Badge>}
                     {post.seoScore != null && <Badge tone="info">SEO {post.seoScore}</Badge>}
                     {post.createdByAi && <Badge tone="info">IA</Badge>}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
+                  <form action={toggleFeatured.bind(null, site.id, post.id)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={post.featured ? "text-amber-600 hover:text-amber-700" : "text-neutral-500 hover:text-neutral-900"}
+                      title={post.featured ? "Remover destaque" : "Marcar como destaque"}
+                    >
+                      {post.featured ? "★" : "☆"}
+                    </Button>
+                  </form>
                   {post.status === "PUBLISHED" ? (
                     <form action={unpublishPost.bind(null, site.id, post.id)}>
                       <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700">
@@ -94,7 +148,11 @@ export default async function SiteDetailPage({
       {/* Novo post */}
       <Card className="p-6">
         <h2 className="mb-4 text-base font-semibold text-neutral-900">Novo post</h2>
-        <PostForm action={createPost.bind(null, site.id)} submitLabel="Criar post (rascunho)" />
+        <PostForm
+          action={createPost.bind(null, site.id)}
+          categories={categories}
+          submitLabel="Criar post (rascunho)"
+        />
       </Card>
 
       {/* Configurações do site (admin) */}

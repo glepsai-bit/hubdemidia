@@ -32,9 +32,51 @@ export const postSchema = z.object({
   excerpt: z.string().max(500).optional().or(z.literal("")),
   content: z.string().min(1, "Conteúdo não pode ser vazio."),
   imageUrl: z.string().url("URL inválida.").optional().or(z.literal("")),
+  heroAlt: z.string().max(200).optional().or(z.literal("")),
+  authorName: z.string().max(120).optional().or(z.literal("")),
+  categoryId: z.string().optional().or(z.literal("")),
+  featured: z.union([z.literal("on"), z.literal("off"), z.boolean()]).optional(),
+  tags: z.string().max(500).optional().or(z.literal("")), // CSV
 });
 
 export type PostInput = z.infer<typeof postSchema>;
+
+export const categorySchema = z.object({
+  name: z.string().min(2, "Nome muito curto.").max(80),
+  slug: z
+    .string()
+    .min(2)
+    .max(63)
+    .regex(slugRegex, "Use apenas letras minúsculas, números e hífens."),
+  description: z.string().max(500).optional().or(z.literal("")),
+  color: z
+    .string()
+    .regex(/^#?[0-9a-fA-F]{6}$/, "Cor em hex (ex.: #c8102e).")
+    .optional()
+    .or(z.literal("")),
+  order: z.coerce.number().int().min(0).max(999).optional(),
+});
+export type CategoryInput = z.infer<typeof categorySchema>;
+
+export const themeSchema = z.object({
+  primaryColor: z
+    .string()
+    .regex(/^#?[0-9a-fA-F]{6}$/, "Cor em hex (ex.: #c8102e).")
+    .optional()
+    .or(z.literal("")),
+  logoUrl: z.string().url("URL inválida.").optional().or(z.literal("")),
+  tagline: z.string().max(160).optional().or(z.literal("")),
+  language: z.string().min(2).max(10).optional().or(z.literal("")),
+});
+export type ThemeInput = z.infer<typeof themeSchema>;
+
+/** Normaliza cor hex: aceita "c8102e" ou "#c8102e", devolve "#c8102e". null se vazio/inválido. */
+export function normalizeHex(input: string | null | undefined): string | null {
+  if (!input) return null;
+  const v = input.trim().replace(/^#/, "");
+  if (!/^[0-9a-fA-F]{6}$/.test(v)) return null;
+  return `#${v.toLowerCase()}`;
+}
 
 export const sourceSchema = z.object({
   type: z.enum(["GOOGLE_TRENDS", "RSS", "WEBSITE"]),
