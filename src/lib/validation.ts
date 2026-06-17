@@ -98,9 +98,20 @@ export const sourceSchema = z.object({
   label: z.string().max(120).optional().or(z.literal("")),
   // siteId vazio = fonte global (admin).
   siteId: z.string().optional().or(z.literal("")),
+  // CSV de palavras-chave (ex.: "futebol, copa, brasileirão"). Vazio = sem filtro.
+  keywords: z.string().max(300).optional().or(z.literal("")),
 });
-
 export type SourceInput = z.infer<typeof sourceSchema>;
+
+export const autopilotSchema = z.object({
+  enabled: z.union([z.literal("on"), z.literal("off"), z.boolean()]).optional(),
+  postsPerRun: z.coerce.number().int().min(1).max(20),
+  featuredThreshold: z.coerce.number().int().min(0).max(100),
+  provider: z.enum(["CLAUDE", "OPENAI", "GROK"]),
+  withImage: z.union([z.literal("on"), z.literal("off"), z.boolean()]).optional(),
+  autoCategory: z.union([z.literal("on"), z.literal("off"), z.boolean()]).optional(),
+});
+export type AutopilotInput = z.infer<typeof autopilotSchema>;
 
 /** Gera um slug a partir de um texto livre. */
 export function slugify(text: string): string {

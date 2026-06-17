@@ -1,5 +1,6 @@
 // Seed em CommonJS — roda em runtime de produção (sem tsx).
 // Use: ADMIN_EMAIL=... ADMIN_PASSWORD=... node prisma/seed.cjs
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 

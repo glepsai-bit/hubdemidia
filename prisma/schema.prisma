@@ -68,13 +68,22 @@ model Site {
   tagline      String? // subtítulo curto que aparece no header do portal
   language     String  @default("pt-BR")
 
-  posts      Post[]
-  sources    Source[]
-  trends     Trend[]
-  pageViews  PageView[]
-  access     UserSiteAccess[]
-  categories Category[]
-  tags       Tag[]
+  // ── Piloto Automático (autopilot) — gera conteúdo sozinho a cada ciclo ──
+  autopilotEnabled           Boolean    @default(false)
+  autopilotPostsPerRun       Int        @default(3) // quantas pautas processar por ciclo
+  autopilotFeaturedThreshold Int        @default(70) // score >= este -> marca destaque
+  autopilotProvider          AiProvider @default(CLAUDE)
+  autopilotWithImage         Boolean    @default(false) // gerar imagem (exige chave OpenAI)
+  autopilotAutoCategory      Boolean    @default(true) // tenta atribuir editoria por keyword
+
+  posts         Post[]
+  sources       Source[]
+  trends        Trend[]
+  pageViews     PageView[]
+  access        UserSiteAccess[]
+  categories    Category[]
+  tags          Tag[]
+  autopilotRuns AutopilotRun[]
 }
 
 // ─────────────────────────────── Conteúdo ───────────────────────────────
@@ -198,6 +207,12 @@ model Source {
   active    Boolean    @default(true)
   createdAt DateTime   @default(now())
 
+  // ── Filtros / configuração de captação ──
+  keywords  String? // CSV de palavras-chave (case-insensitive). Vazio = aceita tudo.
+  // Para GOOGLE_TRENDS: códigos do Google Trends (opcional, só ajuda na curadoria).
+  geo       String? // ex.: "BR", "US"
+  category  String? // ex.: "20" = Esportes; "5" = Computadores e Eletrônicos
+
   site   Site?   @relation(fields: [siteId], references: [id], onDelete: Cascade)
   trends Trend[]
 }
@@ -224,6 +239,33 @@ model Trend {
   source Source? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
 
   @@index([siteId, status, score])
+}
+
+// ─────────────────────────────── Piloto Automático (logs de execução) ───────────────────────────────
+
+enum AutopilotStatus {
+  RUNNING
+  OK
+  ERROR
+  SKIPPED
+}
+
+// Log de cada execução do autopilot — global (siteId null) ou por site.
+model AutopilotRun {
+  id         String          @id @default(cuid())
+  siteId     String?
+  startedAt  DateTime        @default(now())
+  finishedAt DateTime?
+  status     AutopilotStatus @default(RUNNING)
+  posted     Int             @default(0)
+  errors     Int             @default(0)
+  durationMs Int?
+  notes      String? // resumo legível p/ humano (curto)
+
+  site Site? @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, startedAt])
+  @@index([startedAt])
 }
 
 // ─────────────────────────────── IA (BYOK — chaves do usuário) ───────────────────────────────

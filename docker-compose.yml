@@ -57,6 +57,14 @@ services:
       N8N_WEBHOOK_URL: "${N8N_WEBHOOK_URL:-}"
       AUTOMATION_USER_EMAIL: "${AUTOMATION_USER_EMAIL:-}"
 
+      # Piloto Automático (cron interno)
+      AUTOPILOT_ENABLED: "${AUTOPILOT_ENABLED:-false}"
+      AUTOPILOT_INTERVAL_MINUTES: "${AUTOPILOT_INTERVAL_MINUTES:-120}"
+
+      # SEO — IndexNow + GSC
+      INDEXNOW_KEY: "${INDEXNOW_KEY:-}"
+      GSC_VERIFICATION: "${GSC_VERIFICATION:-}"
+
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
     volumes:

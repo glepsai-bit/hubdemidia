@@ -74,6 +74,12 @@ export default async function SiteDetailPage({
           >
             Analytics
           </Link>
+          <Link
+            href={`/dashboard/sites/${site.id}/autopilot`}
+            className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90"
+          >
+            ⚡ Piloto Automático
+          </Link>
         </nav>
       </div>
 

@@ -59,6 +59,9 @@ export function siteMetadata(site: SiteForSeo): Metadata {
       canonical: "/",
       types: { "application/rss+xml": "/feed.xml" },
     },
+    ...(process.env.GSC_VERIFICATION
+      ? { verification: { google: process.env.GSC_VERIFICATION } }
+      : {}),
   };
 }
 

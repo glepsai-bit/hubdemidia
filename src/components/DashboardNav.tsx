@@ -23,7 +23,10 @@ const NAV: NavItem[] = [
   { href: "/dashboard/analytics", label: "Analytics" },
 ];
 
-const ADMIN_NAV: NavItem[] = [{ href: "/dashboard/publish", label: "Publicação geral" }];
+const ADMIN_NAV: NavItem[] = [
+  { href: "/dashboard/autopilot", label: "⚡ Autopilot" },
+  { href: "/dashboard/publish", label: "Publicação geral" },
+];
 
 function isActive(pathname: string, item: NavItem) {
   return item.exact ? pathname === item.href : pathname.startsWith(item.href);

@@ -49,6 +49,13 @@ export function SourceForm({ sites, isAdmin }: { sites: SiteOption[]; isAdmin: b
         <Input name="label" />
       </Field>
 
+      <Field
+        label="Palavras-chave para filtrar (opcional)"
+        hint='CSV — só capta pautas que contenham alguma delas no título. Ex.: "copa, futebol, brasileirão"'
+      >
+        <Input name="keywords" placeholder="copa, mundial, neymar, vinicius" />
+      </Field>
+
       <FormError>{state?.error}</FormError>
       <FormSuccess>{state?.ok}</FormSuccess>
 

@@ -22,10 +22,28 @@ function scoreItem(type: SourceType, item: FeedItem, index: number): number {
   return Math.max(10, 90 - index * 6);
 }
 
-/** Coleta os itens de uma fonte e devolve candidatos pontuados. */
+/** Parse de "futebol, copa, brasileirão" → ["futebol", "copa", "brasileirão"]. Vazio = sem filtro. */
+function parseKeywords(csv: string | null | undefined): string[] {
+  if (!csv) return [];
+  return csv
+    .toLowerCase()
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length >= 2);
+}
+
+/** Coleta os itens de uma fonte, filtra por keywords (se houver) e devolve candidatos pontuados. */
 export async function collectFromSource(source: Source): Promise<TrendCandidate[]> {
   const items = await fetchFeed(source.url);
-  return items.slice(0, 25).map((item, i) => ({
+  const keywords = parseKeywords(source.keywords);
+  const filtered = keywords.length === 0
+    ? items
+    : items.filter((it) => {
+        const hay = `${it.title} ${it.url ?? ""}`.toLowerCase();
+        return keywords.some((kw) => hay.includes(kw));
+      });
+
+  return filtered.slice(0, 25).map((item, i) => ({
     siteId: source.siteId,
     sourceId: source.id,
     title: item.title,

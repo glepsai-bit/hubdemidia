@@ -10,6 +10,18 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const hostname = (req.headers.get("host") ?? "").split(":")[0];
 
+  // 0) IndexNow — serve /<KEY>.txt em qualquer host com o próprio KEY como conteúdo.
+  // Sem alocar rota dinâmica que colide com /[slug].
+  const indexnowKey = process.env.INDEXNOW_KEY;
+  if (indexnowKey && pathname === `/${indexnowKey}.txt`) {
+    return new NextResponse(indexnowKey, {
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "public, max-age=86400",
+      },
+    });
+  }
+
   // 1) Guard do painel
   if (pathname.startsWith("/dashboard") && !req.auth) {
     return NextResponse.redirect(new URL("/login", req.nextUrl));

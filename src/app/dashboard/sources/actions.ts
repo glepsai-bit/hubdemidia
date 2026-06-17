@@ -18,10 +18,11 @@ export async function createSource(_prev: SourceState, formData: FormData): Prom
     url: formData.get("url"),
     label: formData.get("label") ?? "",
     siteId: formData.get("siteId") ?? "",
+    keywords: formData.get("keywords") ?? "",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
 
-  const { type, url, label, siteId } = parsed.data;
+  const { type, url, label, siteId, keywords } = parsed.data;
 
   if (!siteId) {
     if (session.user.role !== "ADMIN") return { error: "Só admin cria fontes globais." };
@@ -31,7 +32,13 @@ export async function createSource(_prev: SourceState, formData: FormData): Prom
   }
 
   await db.source.create({
-    data: { type, url, label: label || null, siteId: siteId || null },
+    data: {
+      type,
+      url,
+      label: label || null,
+      siteId: siteId || null,
+      keywords: keywords || null,
+    },
   });
   revalidatePath("/dashboard/sources");
   return { ok: "Fonte adicionada." };
