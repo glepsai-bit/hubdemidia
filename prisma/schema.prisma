@@ -69,12 +69,13 @@ model Site {
   language     String  @default("pt-BR")
 
   // ── Piloto Automático (autopilot) — gera conteúdo sozinho a cada ciclo ──
-  autopilotEnabled           Boolean    @default(false)
-  autopilotPostsPerRun       Int        @default(3) // quantas pautas processar por ciclo
-  autopilotFeaturedThreshold Int        @default(70) // score >= este -> marca destaque
-  autopilotProvider          AiProvider @default(CLAUDE)
-  autopilotWithImage         Boolean    @default(false) // gerar imagem (exige chave OpenAI)
-  autopilotAutoCategory      Boolean    @default(true) // tenta atribuir editoria por keyword
+  autopilotEnabled           Boolean                @default(false)
+  autopilotPostsPerRun       Int                    @default(3) // quantas pautas processar por ciclo
+  autopilotFeaturedThreshold Int                    @default(70) // score >= este -> marca destaque
+  autopilotProvider          AiProvider             @default(CLAUDE)
+  autopilotWithImage         Boolean                @default(true) // gerar imagem ON/OFF (estratégia abaixo)
+  autopilotImageStrategy     AutopilotImageStrategy @default(BANK_FIRST)
+  autopilotAutoCategory      Boolean                @default(true) // tenta atribuir editoria por keyword
 
   posts         Post[]
   sources       Source[]
@@ -248,6 +249,18 @@ enum AutopilotStatus {
   OK
   ERROR
   SKIPPED
+}
+
+// Estratégia para a imagem hero dos posts gerados pelo autopilot.
+// BANK_FIRST  = tenta Unsplash → Pexels; se nada bater, cai p/ OpenAI (custo mínimo).
+// BANK_ONLY   = só banco grátis; sem imagem se não achar (custo ZERO).
+// OPENAI_ONLY = sempre gera no OpenAI (mais caro, mas único).
+// NONE        = nunca gera imagem.
+enum AutopilotImageStrategy {
+  BANK_FIRST
+  BANK_ONLY
+  OPENAI_ONLY
+  NONE
 }
 
 // Log de cada execução do autopilot — global (siteId null) ou por site.

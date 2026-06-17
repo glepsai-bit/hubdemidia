@@ -26,6 +26,7 @@ export default async function SiteAutopilotPage({
       autopilotFeaturedThreshold: true,
       autopilotProvider: true,
       autopilotWithImage: true,
+      autopilotImageStrategy: true,
       autopilotAutoCategory: true,
     },
   });
@@ -99,6 +100,7 @@ export default async function SiteAutopilotPage({
             featuredThreshold: site.autopilotFeaturedThreshold,
             provider: site.autopilotProvider,
             withImage: site.autopilotWithImage,
+            imageStrategy: site.autopilotImageStrategy,
             autoCategory: site.autopilotAutoCategory,
           }}
         />

@@ -73,6 +73,7 @@ export async function runAutopilotForSite(siteId: string): Promise<RunSummary> {
       autopilotFeaturedThreshold: true,
       autopilotProvider: true,
       autopilotWithImage: true,
+      autopilotImageStrategy: true,
       autopilotAutoCategory: true,
     },
   });
@@ -126,13 +127,16 @@ export async function runAutopilotForSite(siteId: string): Promise<RunSummary> {
       }
 
       // 2) Roda o pipeline (Leitor → SEO → Imagem) e publica direto.
+      // Estratégia de imagem: respeita o site config; se a flag withImage estiver off,
+      // força NONE pra economizar tempo/custo independentemente da estratégia.
+      const effectiveStrategy = site.autopilotWithImage ? site.autopilotImageStrategy : "NONE";
       const result = await generatePostForSite({
         userId,
         siteId,
         provider,
         raw: rawText,
         sourceUrl: trend.url ?? undefined,
-        withImage: site.autopilotWithImage,
+        imageStrategy: effectiveStrategy,
         autoPublish: true,
       });
 

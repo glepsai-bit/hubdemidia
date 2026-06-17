@@ -109,6 +109,7 @@ export const autopilotSchema = z.object({
   featuredThreshold: z.coerce.number().int().min(0).max(100),
   provider: z.enum(["CLAUDE", "OPENAI", "GROK"]),
   withImage: z.union([z.literal("on"), z.literal("off"), z.boolean()]).optional(),
+  imageStrategy: z.enum(["BANK_FIRST", "BANK_ONLY", "OPENAI_ONLY", "NONE"]),
   autoCategory: z.union([z.literal("on"), z.literal("off"), z.boolean()]).optional(),
 });
 export type AutopilotInput = z.infer<typeof autopilotSchema>;

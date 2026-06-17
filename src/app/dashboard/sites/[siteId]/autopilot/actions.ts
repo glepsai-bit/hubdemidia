@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { AiProvider } from "@prisma/client";
+import type { AiProvider, AutopilotImageStrategy } from "@prisma/client";
 import { db } from "@/lib/db";
 import { autopilotSchema } from "@/lib/validation";
 import { runAutopilotForSite } from "@/lib/autopilot";
@@ -25,6 +25,7 @@ export async function updateAutopilot(
     featuredThreshold: formData.get("featuredThreshold") ?? 70,
     provider: formData.get("provider") ?? "CLAUDE",
     withImage: formData.get("withImage") ?? "off",
+    imageStrategy: formData.get("imageStrategy") ?? "BANK_FIRST",
     autoCategory: formData.get("autoCategory") ?? "off",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
@@ -38,6 +39,7 @@ export async function updateAutopilot(
       autopilotFeaturedThreshold: d.featuredThreshold,
       autopilotProvider: d.provider as AiProvider,
       autopilotWithImage: onOff(formData.get("withImage")),
+      autopilotImageStrategy: d.imageStrategy as AutopilotImageStrategy,
       autopilotAutoCategory: onOff(formData.get("autoCategory")),
     },
   });

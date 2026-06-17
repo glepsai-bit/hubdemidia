@@ -65,6 +65,10 @@ services:
       INDEXNOW_KEY: "${INDEXNOW_KEY:-}"
       GSC_VERIFICATION: "${GSC_VERIFICATION:-}"
 
+      # Bancos de imagem (free) — usados quando estratégia BANK_FIRST/BANK_ONLY
+      UNSPLASH_ACCESS_KEY: "${UNSPLASH_ACCESS_KEY:-}"
+      PEXELS_API_KEY: "${PEXELS_API_KEY:-}"
+
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
     volumes:
