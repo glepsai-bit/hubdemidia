@@ -31,7 +31,14 @@ export const postSchema = z.object({
     .regex(slugRegex, "Use apenas letras minúsculas, números e hífens."),
   excerpt: z.string().max(500).optional().or(z.literal("")),
   content: z.string().min(1, "Conteúdo não pode ser vazio."),
-  imageUrl: z.string().url("URL inválida.").optional().or(z.literal("")),
+  imageUrl: z
+    .string()
+    .refine(
+      (v) => v === "" || /^https?:\/\//.test(v) || v.startsWith("/"),
+      "Informe um URL https://... ou caminho local (ex.: /uploads/...).",
+    )
+    .optional()
+    .or(z.literal("")),
   heroAlt: z.string().max(200).optional().or(z.literal("")),
   authorName: z.string().max(120).optional().or(z.literal("")),
   categoryId: z.string().optional().or(z.literal("")),
@@ -64,7 +71,14 @@ export const themeSchema = z.object({
     .regex(/^#?[0-9a-fA-F]{6}$/, "Cor em hex (ex.: #c8102e).")
     .optional()
     .or(z.literal("")),
-  logoUrl: z.string().url("URL inválida.").optional().or(z.literal("")),
+  logoUrl: z
+    .string()
+    .refine(
+      (v) => v === "" || /^https?:\/\//.test(v) || v.startsWith("/"),
+      "Informe um URL https://... ou caminho local (ex.: /uploads/...).",
+    )
+    .optional()
+    .or(z.literal("")),
   tagline: z.string().max(160).optional().or(z.literal("")),
   language: z.string().min(2).max(10).optional().or(z.literal("")),
 });
