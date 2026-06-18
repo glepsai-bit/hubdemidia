@@ -29,7 +29,7 @@ const PROVIDER_TO_NAME: Record<AiProvider, ProviderName> = {
 };
 
 /** Resolve usuário cujas chaves BYOK serão usadas pelo autopilot. */
-async function resolveAutopilotUserId(): Promise<string | null> {
+export async function resolveAutopilotUserId(): Promise<string | null> {
   const email = process.env.AUTOMATION_USER_EMAIL;
   if (email) {
     const u = await db.user.findUnique({ where: { email }, select: { id: true } });
@@ -41,6 +41,22 @@ async function resolveAutopilotUserId(): Promise<string | null> {
     select: { id: true },
   });
   return admin?.id ?? null;
+}
+
+const PROVIDER_LABEL: Record<AiProvider, string> = {
+  CLAUDE: "Claude",
+  OPENAI: "OpenAI",
+  GROK: "Grok",
+};
+
+/** Confirma que o usuário tem chave BYOK do provedor. Retorna `null` se OK ou a mensagem de erro. */
+export async function checkProviderKey(
+  userId: string,
+  provider: AiProvider,
+): Promise<string | null> {
+  const row = await db.aiKey.findFirst({ where: { userId, provider }, select: { id: true } });
+  if (row) return null;
+  return `sem chave ${PROVIDER_LABEL[provider]} — configure em Chaves IA ou troque o provedor`;
 }
 
 /** Tenta atribuir uma editoria via matching de slug/nome com keyword no título. */
@@ -93,6 +109,14 @@ export async function runAutopilotForSite(siteId: string): Promise<RunSummary> {
   if (!userId) {
     sum.errors++;
     sum.details.push("nenhum admin disponível p/ BYOK");
+    return sum;
+  }
+
+  // Pré-checa BYOK do provider antes de gastar 1 query por trend caindo no catch.
+  const keyError = await checkProviderKey(userId, site.autopilotProvider);
+  if (keyError) {
+    sum.errors++;
+    sum.details.push(keyError);
     return sum;
   }
 
