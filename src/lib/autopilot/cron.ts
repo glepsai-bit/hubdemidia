@@ -16,10 +16,15 @@ async function tick() {
   const t0 = Date.now();
   try {
     const summary = await runAutopilotAll({ collectFirst: true });
+    const sites = summary.perSite.map((s) => `${s.siteName}(+${s.posted}/✗${s.errors})`).join(", ");
     console.log(
       `[autopilot] tick ${Date.now() - t0}ms ` +
-        `sites=${summary.sitesProcessed} +${summary.posted} ✗${summary.errors}`,
+        `sites=${summary.sitesProcessed} +${summary.posted} ✗${summary.errors}` +
+        (sites ? ` ${sites}` : " (sem sites ativos no DB)"),
     );
+    if (summary.sitesProcessed === 0) {
+      console.log("[autopilot] DEBUG: nenhum site com autopilotEnabled=true encontrado");
+    }
   } catch (e) {
     console.error("[autopilot] tick erro:", e);
   } finally {

@@ -185,21 +185,28 @@ interface OverallSummary {
   perSite: RunSummary[];
 }
 
-/** Roda 1 ciclo: para cada site com autopilot ativo, processa. */
+/** Roda 1 ciclo: para cada site com autopilot ativo, processa.
+ *  Não filtra por status — sites em DRAFT podem gerar rascunhos pro humano publicar depois. */
 export async function runAutopilotAll(opts: { collectFirst?: boolean } = {}): Promise<OverallSummary> {
   // Antes de processar, opcionalmente coleta novas pautas de TODAS as fontes ativas.
+  let collectedNew = 0;
   if (opts.collectFirst !== false) {
     try {
-      await collectActiveSources({});
+      const summary = await collectActiveSources({});
+      collectedNew = summary.inserted;
     } catch {
       // segue mesmo se coleta falhar parcialmente
     }
   }
 
+  // IMPORTANTE: não filtramos por status="LIVE" — site DRAFT pode acumular rascunhos.
   const enabledSites = await db.site.findMany({
-    where: { autopilotEnabled: true, status: "LIVE" },
-    select: { id: true, name: true },
+    where: { autopilotEnabled: true },
+    select: { id: true, name: true, status: true },
   });
+
+  // Pautas pendentes disponíveis (NEW) — global + por site.
+  const pendingTrends = await db.trend.count({ where: { status: "NEW" } });
 
   // Log de execução agregada.
   const run = await db.autopilotRun.create({
@@ -231,6 +238,16 @@ export async function runAutopilotAll(opts: { collectFirst?: boolean } = {}): Pr
           ? "OK"
           : "ERROR";
 
+  // Notes mais informativas: sites ativos, pautas, e detalhe por site.
+  const perSiteNotes = overall.perSite
+    .map((s) => `${s.siteName}: +${s.posted}/✗${s.errors}`)
+    .join(" · ");
+  const headline =
+    enabledSites.length === 0
+      ? "0 sites com autopilot ativo"
+      : `${enabledSites.length} site(s) · ${pendingTrends} pautas NEW · +${collectedNew} novas na coleta`;
+  const notes = `${headline}${perSiteNotes ? ` · ${perSiteNotes}` : ""}`.slice(0, 480);
+
   await db.autopilotRun.update({
     where: { id: run.id },
     data: {
@@ -239,11 +256,7 @@ export async function runAutopilotAll(opts: { collectFirst?: boolean } = {}): Pr
       posted: overall.posted,
       errors: overall.errors,
       durationMs: Date.now() - t0,
-      notes:
-        overall.perSite
-          .map((s) => `${s.siteName}: +${s.posted} / ${s.errors} err`)
-          .join(" · ")
-          .slice(0, 480) || "sem sites ativos",
+      notes,
     },
   });
 
